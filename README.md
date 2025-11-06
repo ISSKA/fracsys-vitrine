@@ -1,4 +1,4 @@
-# fracsys-devanture
+# fracsys-vitrine
 
 ### French
 Petite page web pour présenter l'avancement du projet FracSYS.
