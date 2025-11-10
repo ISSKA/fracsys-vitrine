@@ -115,7 +115,6 @@ function setupZoomControls(canvas, camera, onInteraction) {
     canvas.addEventListener('wheel', (e) => {
         e.preventDefault();
         const delta = e.deltaY * ZOOM_SPEED;
-        console.log('Camera z:', camera.position.z, 'Delta:', delta);
         camera.position.z += delta;
 
         // Clamp camera position to prevent going too close or too far
