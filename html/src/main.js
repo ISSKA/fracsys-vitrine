@@ -1,3 +1,4 @@
+import { setupSceneFracture } from './sceneSetupFracture.js';
 import { setupScenePoints } from './sceneSetupPoints.js';
 import { setupMouseControls } from './mouseControls.js';
 import { RenderManager } from './renderManager.js';
@@ -7,7 +8,8 @@ import { RenderManager } from './renderManager.js';
  */
 async function init() {
     // Setup scene, camera, renderer, and objects
-    const { renderer, camera, scene, points, canvas } = await setupScenePoints();
+    //const { renderer, camera, scene, , canvas } = await setupScenePoints();
+    const { renderer, camera, scene, model, canvas } = await setupSceneFracture();
 
     // Setup render manager
     const renderManager = new RenderManager(renderer, scene, camera);
@@ -15,7 +17,7 @@ async function init() {
     // Setup mouse controls with render callback
     setupMouseControls(
         canvas,
-        points,
+        model.model,
         camera,
         renderManager.requestRenderIfNotRequested
     );
