@@ -14,9 +14,6 @@ export async function setupSceneFracture() {
     const scene = createScene();
     const model = await loadGLTFModel(scene, modelPath);
 
-    // Position camera to frame the model properly
-    positionCameraToFitModel(camera, model);
-
     return { renderer, camera, scene, model, canvas };
 }
 
@@ -34,39 +31,6 @@ function createCamera() {
     return camera;
 }
 
-/**
- * Position camera to frame the model properly
- * @param {THREE.PerspectiveCamera} camera - The camera to position
- * @param {Object} modelData - Object containing model info (center, size, boundingBox)
- */
-function positionCameraToFitModel(camera, modelData) {
-    const { center, size } = modelData;
-
-    // Get the maximum dimension of the bounding box
-    const maxDim = Math.max(size.x, size.y, size.z);
-
-    // Calculate camera distance to fit the entire model in view
-    // Using FOV to calculate the distance needed
-    const fov = camera.fov * (Math.PI / 180); // Convert to radians
-    const cameraDistance = Math.abs(maxDim / Math.tan(fov / 2)) * 1.2; // 1.5 adds padding
-
-    // Position camera at a good viewing angle
-    // Using a 45-degree angle for better perspective
-    const angle = Math.PI / 4; // 45 degrees
-    camera.position.set(
-        center.x + cameraDistance * Math.sin(angle),
-        center.y + cameraDistance * 0.5, // Slightly elevated
-        center.z + cameraDistance * Math.cos(angle)
-    );
-
-    // Make camera look at the center of the model
-    camera.lookAt(center);
-
-    console.log('Camera positioned at:', camera.position);
-    console.log('Looking at model center:', center);
-    console.log('Model size:', size);
-    console.log('Camera distance:', cameraDistance);
-}
 
 /**
  * Create the scene with lighting
