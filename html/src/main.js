@@ -19,7 +19,8 @@ async function init() {
         canvas,
         model.model,
         camera,
-        renderManager.requestRenderIfNotRequested
+        renderManager.requestRenderIfNotRequested,
+        model.center
     );
 }
 
