@@ -1,4 +1,5 @@
-import { setupSceneFracture } from './sceneSetupFracture.js';
+// import { setupSceneFracture } from './sceneSetupFracture.js';
+import { setupSceneFracture } from './sceneSetupDamageZone.js';
 import { setupScenePoints } from './sceneSetupPoints.js';
 import { setupMouseControls } from './mouseControls.js';
 import { RenderManager } from './renderManager.js';

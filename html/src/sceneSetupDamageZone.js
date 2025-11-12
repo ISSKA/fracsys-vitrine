@@ -5,7 +5,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
  * Initialize and configure the Three.js scene for displaying the fracture glTF model
  */
 export async function setupSceneFracture() {
-    const modelPath = "models/fracture_scene.gltf";
+    const modelPath = "models/voxels.gltf";
     const canvas = document.querySelector('#c');
     const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
     document.body.appendChild(renderer.domElement);
@@ -40,9 +40,9 @@ function createScene() {
     scene.background = new THREE.Color(0x625d5a);
 
     // Add directional light
-//    const directionalLight = new THREE.DirectionalLight(0xff0000, 2);
-//    directionalLight.position.set(-1, 2, 4);
-//    scene.add(directionalLight);
+    const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 2);
+    directionalLight.position.set(-1, 2, 4);
+    scene.add(directionalLight);
 
     // Add ambient light for overall illumination
     scene.add(new THREE.AmbientLight(0xFFFFFF, 2));
