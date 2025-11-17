@@ -6,34 +6,53 @@ import { RenderManager } from './renderManager.js';
 // Global variables to track the current state
 let renderer, camera, scene, canvas, renderManager, currentModel;
 
-// Backend API configuration
-const BACKEND_URL = window.location.hostname === 'localhost'
-    ? 'http://localhost:3000'
-    : `http://${window.location.hostname}:3000`;
-
 // Cache for model sizes
 let modelSizes = {};
 
 /**
- * Fetch model sizes from the backend
+ * Fetch file size using HTTP HEAD request
  */
-async function fetchModelSizes() {
+async function fetchFileSize(url) {
     try {
-        const response = await fetch(`${BACKEND_URL}/api/model-sizes`);
+        const response = await fetch(url, { method: 'HEAD' });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        modelSizes = await response.json();
-        console.log('Model sizes loaded:', modelSizes);
+        const contentLength = response.headers.get('Content-Length');
+        if (contentLength) {
+            // Convert bytes to megabytes
+            return Math.round(parseInt(contentLength) / (1024 * 1024));
+        }
+        return null;
     } catch (error) {
-        console.error('Error fetching model sizes:', error);
-        // Fallback to hardcoded values if backend is unavailable
-        modelSizes = {
-            'voxels.gltf': 486,
-            'fracture_scene.gltf': 31
-        };
-        console.warn('Using fallback model sizes');
+        console.error(`Error fetching file size for ${url}:`, error);
+        return null;
     }
+}
+
+/**
+ * Fetch model sizes using HEAD requests
+ */
+async function fetchModelSizes() {
+    const models = [
+        { filename: 'voxels.gltf', path: 'models/voxels.gltf' },
+        { filename: 'fracture_scene.gltf', path: 'models/fracture_scene.gltf' }
+    ];
+
+    const sizePromises = models.map(async (model) => {
+        const sizeMB = await fetchFileSize(model.path);
+        return { filename: model.filename, sizeMB };
+    });
+
+    const results = await Promise.all(sizePromises);
+
+    results.forEach(({ filename, sizeMB }) => {
+        if (sizeMB !== null) {
+            modelSizes[filename] = sizeMB;
+        }
+    });
+
+    console.log('Model sizes loaded:', modelSizes);
 }
 
 /**
