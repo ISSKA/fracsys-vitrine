@@ -6,6 +6,62 @@ import { RenderManager } from './renderManager.js';
 // Global variables to track the current state
 let renderer, camera, scene, canvas, renderManager, currentModel;
 
+// Cache for model sizes
+let modelSizes = {};
+
+/**
+ * Fetch file size using HTTP HEAD request
+ */
+async function fetchFileSize(url) {
+    try {
+        const response = await fetch(url, { method: 'HEAD' });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const contentLength = response.headers.get('Content-Length');
+        if (contentLength) {
+            // Convert bytes to megabytes
+            return Math.round(parseInt(contentLength) / (1024 * 1024));
+        }
+        return null;
+    } catch (error) {
+        console.error(`Error fetching file size for ${url}:`, error);
+        return null;
+    }
+}
+
+/**
+ * Fetch model sizes using HEAD requests
+ */
+async function fetchModelSizes() {
+    const models = [
+        { filename: 'voxels.gltf', path: 'models/voxels.gltf' },
+        { filename: 'fracture_scene.gltf', path: 'models/fracture_scene.gltf' }
+    ];
+
+    const sizePromises = models.map(async (model) => {
+        const sizeMB = await fetchFileSize(model.path);
+        return { filename: model.filename, sizeMB };
+    });
+
+    const results = await Promise.all(sizePromises);
+
+    results.forEach(({ filename, sizeMB }) => {
+        if (sizeMB !== null) {
+            modelSizes[filename] = sizeMB;
+        }
+    });
+
+    console.log('Model sizes loaded:', modelSizes);
+}
+
+/**
+ * Get file size for a model
+ */
+function getModelSize(filename) {
+    return modelSizes[filename] || 0;
+}
+
 /**
  * Create and configure the camera
  */
@@ -135,6 +191,9 @@ async function init() {
     // Setup render manager
     renderManager = new RenderManager(renderer, scene, camera);
 
+    // Fetch model sizes from backend
+    await fetchModelSizes();
+
     // Hide the loading overlay since we start with no model
     const loadingOverlay = document.getElementById('loading-overlay');
     if (loadingOverlay) {
@@ -149,7 +208,7 @@ async function init() {
     const fractureZoneButton = document.getElementById('fracture-zone-button');
 
     damageZoneButton.addEventListener('click', () => {
-        const fileSizeMB = 486;
+        const fileSizeMB = getModelSize('voxels.gltf');
         if (fileSizeMB > 100) {
             showConfirmationDialog('models/voxels.gltf', fileSizeMB);
         } else {
@@ -158,7 +217,7 @@ async function init() {
     });
 
     fractureZoneButton.addEventListener('click', () => {
-        const fileSizeMB = 31;
+        const fileSizeMB = getModelSize('fracture_scene.gltf');
         if (fileSizeMB > 100) {
             showConfirmationDialog('models/fracture_scene.gltf', fileSizeMB);
         } else {
