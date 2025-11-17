@@ -149,11 +149,21 @@ async function init() {
     const fractureZoneButton = document.getElementById('fracture-zone-button');
 
     damageZoneButton.addEventListener('click', () => {
-        showConfirmationDialog('models/voxels.gltf', 486);
+        const fileSizeMB = 486;
+        if (fileSizeMB > 100) {
+            showConfirmationDialog('models/voxels.gltf', fileSizeMB);
+        } else {
+            loadNewModel('models/voxels.gltf');
+        }
     });
 
     fractureZoneButton.addEventListener('click', () => {
-        showConfirmationDialog('models/fracture_scene.gltf', 31);
+        const fileSizeMB = 31;
+        if (fileSizeMB > 100) {
+            showConfirmationDialog('models/fracture_scene.gltf', fileSizeMB);
+        } else {
+            loadNewModel('models/fracture_scene.gltf');
+        }
     });
 }
 
