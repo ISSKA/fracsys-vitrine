@@ -7,3 +7,14 @@ services:
     volumes:
       - ./html:/usr/local/apache2/htdocs:ro
     restart: unless-stopped
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    container_name: fracsys-backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./html/models:/app/models:ro
+    restart: unless-stopped

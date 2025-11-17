@@ -6,6 +6,43 @@ import { RenderManager } from './renderManager.js';
 // Global variables to track the current state
 let renderer, camera, scene, canvas, renderManager, currentModel;
 
+// Backend API configuration
+const BACKEND_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:3000'
+    : `http://${window.location.hostname}:3000`;
+
+// Cache for model sizes
+let modelSizes = {};
+
+/**
+ * Fetch model sizes from the backend
+ */
+async function fetchModelSizes() {
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/model-sizes`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        modelSizes = await response.json();
+        console.log('Model sizes loaded:', modelSizes);
+    } catch (error) {
+        console.error('Error fetching model sizes:', error);
+        // Fallback to hardcoded values if backend is unavailable
+        modelSizes = {
+            'voxels.gltf': 486,
+            'fracture_scene.gltf': 31
+        };
+        console.warn('Using fallback model sizes');
+    }
+}
+
+/**
+ * Get file size for a model
+ */
+function getModelSize(filename) {
+    return modelSizes[filename] || 0;
+}
+
 /**
  * Create and configure the camera
  */
@@ -135,6 +172,9 @@ async function init() {
     // Setup render manager
     renderManager = new RenderManager(renderer, scene, camera);
 
+    // Fetch model sizes from backend
+    await fetchModelSizes();
+
     // Hide the loading overlay since we start with no model
     const loadingOverlay = document.getElementById('loading-overlay');
     if (loadingOverlay) {
@@ -149,7 +189,7 @@ async function init() {
     const fractureZoneButton = document.getElementById('fracture-zone-button');
 
     damageZoneButton.addEventListener('click', () => {
-        const fileSizeMB = 486;
+        const fileSizeMB = getModelSize('voxels.gltf');
         if (fileSizeMB > 100) {
             showConfirmationDialog('models/voxels.gltf', fileSizeMB);
         } else {
@@ -158,7 +198,7 @@ async function init() {
     });
 
     fractureZoneButton.addEventListener('click', () => {
-        const fileSizeMB = 31;
+        const fileSizeMB = getModelSize('fracture_scene.gltf');
         if (fileSizeMB > 100) {
             showConfirmationDialog('models/fracture_scene.gltf', fileSizeMB);
         } else {
