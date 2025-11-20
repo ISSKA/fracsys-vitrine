@@ -3,7 +3,7 @@ services:
     image: httpd:2.4
     container_name: apache-web
     ports:
-      - "80:80"
+      - "8080:80"
     volumes:
       - ./html:/usr/local/apache2/htdocs:ro
     restart: unless-stopped
