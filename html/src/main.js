@@ -38,7 +38,8 @@ async function fetchFileSize(url) {
 async function fetchModelSizes() {
     const models = [
         { filename: 'damage_zone.gltf', path: 'models/damage_zone.gltf' },
-        { filename: 'fracture_scene.gltf', path: 'models/fracture_scene.gltf' }
+        { filename: 'damage_zone_optimized.gltf', path: 'models/damage_zone_optimized.gltf' },
+        { filename: 'fracture_scene.gltf', path: 'models/fracture_scene.gltf' },
     ];
 
     const sizePromises = models.map(async (model) => {
@@ -207,6 +208,7 @@ async function init() {
 
     // Setup button event listeners
     const damageZoneButton = document.getElementById('damage-zone-button');
+    const damageZoneOptimizedButton = document.getElementById('damage-zone-optimized-button')
     const fractureZoneButton = document.getElementById('fracture-zone-button');
 
     damageZoneButton.addEventListener('click', () => {
@@ -226,6 +228,16 @@ async function init() {
             loadNewModel('models/fracture_scene.gltf');
         }
     });
+
+    damageZoneOptimizedButton.addEventListener('click', () => {
+        const fileSizeMB = getModelSize('damage_zone_optimized.gltf');
+        if (fileSizeMB > 100) {
+            showConfirmationDialog('models/damage_zone_optimized.gltf', fileSizeMB);
+        } else {
+            loadNewModel('models/damage_zone_optimized.gltf');
+        }
+    });
+
 }
 
 // Start the application
