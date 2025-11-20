@@ -35,7 +35,7 @@ async function fetchFileSize(url) {
  */
 async function fetchModelSizes() {
     const models = [
-        { filename: 'voxels.gltf', path: 'models/voxels.gltf' },
+        { filename: 'damage_zone.gltf', path: 'models/damage_zone.gltf' },
         { filename: 'fracture_scene.gltf', path: 'models/fracture_scene.gltf' }
     ];
 
@@ -208,11 +208,11 @@ async function init() {
     const fractureZoneButton = document.getElementById('fracture-zone-button');
 
     damageZoneButton.addEventListener('click', () => {
-        const fileSizeMB = getModelSize('voxels.gltf');
+        const fileSizeMB = getModelSize('damage_zone.gltf');
         if (fileSizeMB > 100) {
-            showConfirmationDialog('models/voxels.gltf', fileSizeMB);
+            showConfirmationDialog('models/damage_zone.gltf', fileSizeMB);
         } else {
-            loadNewModel('models/voxels.gltf');
+            loadNewModel('models/damage_zone.gltf');
         }
     });
 

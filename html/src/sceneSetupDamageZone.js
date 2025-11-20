@@ -5,7 +5,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
  * Initialize and configure the Three.js scene for displaying the fracture glTF model
  */
 export async function setupSceneFracture() {
-    const modelPath = "models/damage_zone.glb";
+    const modelPath = "models/damage_zone.gltf";
     const canvas = document.querySelector('#c');
     const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
     document.body.appendChild(renderer.domElement);
