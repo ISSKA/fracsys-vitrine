@@ -11,6 +11,26 @@ let modelSizes = {};
 
 let lightBrightness = 1;
 
+// Constants
+const FILE_SIZE_THRESHOLD_MB = 100;
+const INITIAL_CAMERA_POSITION = { x: 0, y: 0, z: 10000 };
+
+// Model configuration
+const MODEL_CONFIG = {
+    'damage-zone-button': {
+        filename: 'damage_zone.gltf',
+        path: 'models/damage_zone.gltf'
+    },
+    'damage-zone-optimized-button': {
+        filename: 'damage_zone_optimized.gltf',
+        path: 'models/damage_zone_optimized.gltf'
+    },
+    'fracture-zone-button': {
+        filename: 'fracture_scene.gltf',
+        path: 'models/fracture_scene.gltf'
+    }
+};
+
 /**
  * Fetch file size using HTTP HEAD request
  */
@@ -36,11 +56,7 @@ async function fetchFileSize(url) {
  * Fetch model sizes using HEAD requests
  */
 async function fetchModelSizes() {
-    const models = [
-        { filename: 'damage_zone.gltf', path: 'models/damage_zone.gltf' },
-        { filename: 'damage_zone_optimized.gltf', path: 'models/damage_zone_optimized.gltf' },
-        { filename: 'fracture_scene.gltf', path: 'models/fracture_scene.gltf' },
-    ];
+    const models = Object.values(MODEL_CONFIG);
 
     const sizePromises = models.map(async (model) => {
         const sizeMB = await fetchFileSize(model.path);
@@ -74,7 +90,7 @@ function createCamera() {
     const near = 0.1;
     const far = 1000000;
     const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    camera.position.set(0, 0, 10000);
+    camera.position.set(INITIAL_CAMERA_POSITION.x, INITIAL_CAMERA_POSITION.y, INITIAL_CAMERA_POSITION.z);
     return camera;
 }
 
@@ -133,10 +149,22 @@ async function loadNewModel(modelPath) {
     );
 
     // Reset camera position
-    camera.position.set(0, 0, 10000);
+    camera.position.set(INITIAL_CAMERA_POSITION.x, INITIAL_CAMERA_POSITION.y, INITIAL_CAMERA_POSITION.z);
 
     // Request a render
     renderManager.requestRenderIfNotRequested();
+}
+
+/**
+ * Handle model loading with file size check
+ */
+function handleModelLoad(modelPath, filename) {
+    const fileSizeMB = getModelSize(filename);
+    if (fileSizeMB > FILE_SIZE_THRESHOLD_MB) {
+        showConfirmationDialog(modelPath, fileSizeMB);
+    } else {
+        loadNewModel(modelPath);
+    }
 }
 
 /**
@@ -206,35 +234,15 @@ async function init() {
     // Do initial render to show the empty scene
     renderManager.requestRenderIfNotRequested();
 
-    // Setup button event listeners
-    const damageZoneButton = document.getElementById('damage-zone-button');
-    const damageZoneOptimizedButton = document.getElementById('damage-zone-optimized-button')
-    const fractureZoneButton = document.getElementById('fracture-zone-button');
+    // Setup button event listeners using MODEL_CONFIG
+    Object.keys(MODEL_CONFIG).forEach(buttonId => {
+        const button = document.getElementById(buttonId);
+        const modelInfo = MODEL_CONFIG[buttonId];
 
-    damageZoneButton.addEventListener('click', () => {
-        const fileSizeMB = getModelSize('damage_zone.gltf');
-        if (fileSizeMB > 100) {
-            showConfirmationDialog('models/damage_zone.gltf', fileSizeMB);
-        } else {
-            loadNewModel('models/damage_zone.gltf');
-        }
-    });
-
-    fractureZoneButton.addEventListener('click', () => {
-        const fileSizeMB = getModelSize('fracture_scene.gltf');
-        if (fileSizeMB > 100) {
-            showConfirmationDialog('models/fracture_scene.gltf', fileSizeMB);
-        } else {
-            loadNewModel('models/fracture_scene.gltf');
-        }
-    });
-
-    damageZoneOptimizedButton.addEventListener('click', () => {
-        const fileSizeMB = getModelSize('damage_zone_optimized.gltf');
-        if (fileSizeMB > 100) {
-            showConfirmationDialog('models/damage_zone_optimized.gltf', fileSizeMB);
-        } else {
-            loadNewModel('models/damage_zone_optimized.gltf');
+        if (button) {
+            button.addEventListener('click', () => {
+                handleModelLoad(modelInfo.path, modelInfo.filename);
+            });
         }
     });
 
