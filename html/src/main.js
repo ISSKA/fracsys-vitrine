@@ -9,6 +9,8 @@ let renderer, camera, scene, canvas, renderManager, currentModel;
 // Cache for model sizes
 let modelSizes = {};
 
+let lightBrightness = 1;
+
 /**
  * Fetch file size using HTTP HEAD request
  */
@@ -83,12 +85,12 @@ function createScene() {
     scene.background = new THREE.Color(0x625d5a);
 
     // Add directional light
-    const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 2);
+    const directionalLight = new THREE.DirectionalLight(0xFFFFFF, lightBrightness);
     directionalLight.position.set(-1, 2, 4);
     scene.add(directionalLight);
 
     // Add ambient light for overall illumination
-    scene.add(new THREE.AmbientLight(0xFFFFFF, 2));
+    scene.add(new THREE.AmbientLight(0xFFFFFF, lightBrightness));
 
     return scene;
 }
