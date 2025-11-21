@@ -201,6 +201,27 @@ function showConfirmationDialog(modelPath, fileSizeMB, sceneConfig) {
 }
 
 /**
+ * Show WIP dialog and handle model loading
+ */
+function showWIPDialog(modelPath) {
+    const dialog = document.getElementById('wip-dialog');
+    const okButton = document.getElementById('wip-ok-button');
+
+    // Show the dialog
+    dialog.classList.add('show');
+
+    // Handle OK click
+    const okHandler = async () => {
+        dialog.classList.remove('show');
+        await loadNewModel(modelPath);
+        okButton.removeEventListener('click', okHandler);
+    };
+
+    // Add event listener
+    okButton.addEventListener('click', okHandler);
+}
+
+/**
  * Initialize the Three.js application
  */
 async function init() {
@@ -234,15 +255,30 @@ async function init() {
     // Do initial render to show the empty scene
     renderManager.requestRenderIfNotRequested();
 
-    // Setup button event listeners using MODEL_CONFIG
-    Object.keys(MODEL_CONFIG).forEach(buttonId => {
-        const button = document.getElementById(buttonId);
-        const modelInfo = MODEL_CONFIG[buttonId];
+    // Setup button event listeners
+    const damageZoneButton = document.getElementById('damage-zone-button');
+    const damageZoneOptimizedButton = document.getElementById('damage-zone-optimized-button');
+    const fractureZoneButton = document.getElementById('fracture-zone-button');
 
-        if (button) {
-            button.addEventListener('click', () => {
-                handleModelLoad(modelInfo.path, modelInfo.filename, modelInfo.sceneType);
-            });
+    damageZoneButton.addEventListener('click', () => {
+        const fileSizeMB = getModelSize('voxels.gltf');
+        if (fileSizeMB > 100) {
+            showConfirmationDialog('models/voxels.gltf', fileSizeMB);
+        } else {
+            loadNewModel('models/voxels.gltf');
+        }
+    });
+
+    damageZoneOptimizedButton.addEventListener('click', () => {
+        showWIPDialog('models/damage_zone_optimized.gltf');
+    });
+
+    fractureZoneButton.addEventListener('click', () => {
+        const fileSizeMB = getModelSize('fracture_scene.gltf');
+        if (fileSizeMB > 100) {
+            showConfirmationDialog('models/fracture_scene.gltf', fileSizeMB);
+        } else {
+            loadNewModel('models/fracture_scene.gltf');
         }
     });
 
