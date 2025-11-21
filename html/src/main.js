@@ -176,6 +176,27 @@ function showConfirmationDialog(modelPath, fileSizeMB) {
 }
 
 /**
+ * Show WIP dialog and handle model loading
+ */
+function showWIPDialog(modelPath) {
+    const dialog = document.getElementById('wip-dialog');
+    const okButton = document.getElementById('wip-ok-button');
+
+    // Show the dialog
+    dialog.classList.add('show');
+
+    // Handle OK click
+    const okHandler = async () => {
+        dialog.classList.remove('show');
+        await loadNewModel(modelPath);
+        okButton.removeEventListener('click', okHandler);
+    };
+
+    // Add event listener
+    okButton.addEventListener('click', okHandler);
+}
+
+/**
  * Initialize the Three.js application
  */
 async function init() {
@@ -205,6 +226,7 @@ async function init() {
 
     // Setup button event listeners
     const damageZoneButton = document.getElementById('damage-zone-button');
+    const damageZoneOptimizedButton = document.getElementById('damage-zone-optimized-button');
     const fractureZoneButton = document.getElementById('fracture-zone-button');
 
     damageZoneButton.addEventListener('click', () => {
@@ -214,6 +236,10 @@ async function init() {
         } else {
             loadNewModel('models/voxels.gltf');
         }
+    });
+
+    damageZoneOptimizedButton.addEventListener('click', () => {
+        showWIPDialog('models/damage_zone_optimized.gltf');
     });
 
     fractureZoneButton.addEventListener('click', () => {
