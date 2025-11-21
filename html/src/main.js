@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { loadGLTFModel } from './sceneSetupDamageZone.js';
+import { loadGLTFModel, createCamera, createScene } from './sceneSetupShared.js';
 import { setupMouseControls } from './mouseControls.js';
 import { RenderManager } from './renderManager.js';
 
@@ -79,37 +79,6 @@ async function fetchModelSizes() {
  */
 function getModelSize(filename) {
     return modelSizes[filename] || 0;
-}
-
-/**
- * Create and configure the camera
- */
-function createCamera() {
-    const fov = 75;
-    const aspect = 2;
-    const near = 0.1;
-    const far = 1000000;
-    const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    camera.position.set(INITIAL_CAMERA_POSITION.x, INITIAL_CAMERA_POSITION.y, INITIAL_CAMERA_POSITION.z);
-    return camera;
-}
-
-/**
- * Create the scene with lighting
- */
-function createScene() {
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x625d5a);
-
-    // Add directional light
-    const directionalLight = new THREE.DirectionalLight(0xFFFFFF, lightBrightness);
-    directionalLight.position.set(-1, 2, 4);
-    scene.add(directionalLight);
-
-    // Add ambient light for overall illumination
-    scene.add(new THREE.AmbientLight(0xFFFFFF, lightBrightness));
-
-    return scene;
 }
 
 /**
@@ -217,7 +186,8 @@ async function init() {
 
     // Create camera and scene
     camera = createCamera();
-    scene = createScene();
+    camera.position.set(INITIAL_CAMERA_POSITION.x, INITIAL_CAMERA_POSITION.y, INITIAL_CAMERA_POSITION.z);
+    scene = createScene(true, lightBrightness);
 
     // Setup render manager
     renderManager = new RenderManager(renderer, scene, camera);
