@@ -38,6 +38,14 @@ export class RenderManager {
     }
 
     /**
+     * Update the scene reference
+     * @param {THREE.Scene} scene - The new scene to render
+     */
+    updateScene(scene) {
+        this.scene = scene;
+    }
+
+    /**
      * Resize the renderer to match the display size
      */
     resizeRendererToDisplaySize() {

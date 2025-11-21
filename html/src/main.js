@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { loadGLTFModel, createCamera, createScene } from './sceneSetupShared.js';
+import { getSceneConfig as getDamageZoneConfig } from './sceneSetupDamageZone.js';
+import { getSceneConfig as getFractureConfig } from './sceneSetupFracture.js';
 import { setupMouseControls } from './mouseControls.js';
 import { RenderManager } from './renderManager.js';
 
@@ -9,26 +11,32 @@ let renderer, camera, scene, canvas, renderManager, currentModel;
 // Cache for model sizes
 let modelSizes = {};
 
-let lightBrightness = 1;
-
 // Constants
 const FILE_SIZE_THRESHOLD_MB = 100;
-const INITIAL_CAMERA_POSITION = { x: 0, y: 0, z: 10000 };
 
 // Model configuration
 const MODEL_CONFIG = {
     'damage-zone-button': {
         filename: 'damage_zone.gltf',
-        path: 'models/damage_zone.gltf'
+        path: 'models/damage_zone.gltf',
+        sceneType: 'damageZone'
     },
     'damage-zone-optimized-button': {
         filename: 'damage_zone_optimized.gltf',
-        path: 'models/damage_zone_optimized.gltf'
+        path: 'models/damage_zone_optimized.gltf',
+        sceneType: 'damageZone'
     },
     'fracture-zone-button': {
         filename: 'fracture_scene.gltf',
-        path: 'models/fracture_scene.gltf'
+        path: 'models/fracture_scene.gltf',
+        sceneType: 'fracture'
     }
+};
+
+// Scene configuration getters
+const SCENE_CONFIGS = {
+    'damageZone': getDamageZoneConfig,
+    'fracture': getFractureConfig
 };
 
 /**
@@ -83,8 +91,10 @@ function getModelSize(filename) {
 
 /**
  * Load a new model and replace the current one
+ * @param {string} modelPath - Path to the model file
+ * @param {Object} sceneConfig - Scene configuration object
  */
-async function loadNewModel(modelPath) {
+async function loadNewModel(modelPath, sceneConfig) {
     // Show loading overlay
     const loadingOverlay = document.getElementById('loading-overlay');
     if (loadingOverlay) {
@@ -104,6 +114,10 @@ async function loadNewModel(modelPath) {
         scene.remove(currentModel.model);
     }
 
+    // Recreate the scene with the new configuration
+    scene = createScene(sceneConfig.includeDirectionalLight, sceneConfig.lightBrightness);
+    renderManager.updateScene(scene);
+
     // Load the new model
     const model = await loadGLTFModel(scene, modelPath);
     currentModel = model;
@@ -117,8 +131,12 @@ async function loadNewModel(modelPath) {
         model.center
     );
 
-    // Reset camera position
-    camera.position.set(INITIAL_CAMERA_POSITION.x, INITIAL_CAMERA_POSITION.y, INITIAL_CAMERA_POSITION.z);
+    // Reset camera position using scene config
+    camera.position.set(
+        sceneConfig.cameraPosition.x,
+        sceneConfig.cameraPosition.y,
+        sceneConfig.cameraPosition.z
+    );
 
     // Request a render
     renderManager.requestRenderIfNotRequested();
@@ -126,20 +144,27 @@ async function loadNewModel(modelPath) {
 
 /**
  * Handle model loading with file size check
+ * @param {string} modelPath - Path to the model file
+ * @param {string} filename - Filename for size lookup
+ * @param {string} sceneType - Type of scene configuration to use
  */
-function handleModelLoad(modelPath, filename) {
+function handleModelLoad(modelPath, filename, sceneType) {
+    const sceneConfig = SCENE_CONFIGS[sceneType]();
     const fileSizeMB = getModelSize(filename);
     if (fileSizeMB > FILE_SIZE_THRESHOLD_MB) {
-        showConfirmationDialog(modelPath, fileSizeMB);
+        showConfirmationDialog(modelPath, fileSizeMB, sceneConfig);
     } else {
-        loadNewModel(modelPath);
+        loadNewModel(modelPath, sceneConfig);
     }
 }
 
 /**
  * Show confirmation dialog and handle model loading
+ * @param {string} modelPath - Path to the model file
+ * @param {number} fileSizeMB - File size in MB
+ * @param {Object} sceneConfig - Scene configuration object
  */
-function showConfirmationDialog(modelPath, fileSizeMB) {
+function showConfirmationDialog(modelPath, fileSizeMB, sceneConfig) {
     const dialog = document.getElementById('confirmation-dialog');
     const confirmButton = document.getElementById('confirm-button');
     const cancelButton = document.getElementById('cancel-button');
@@ -154,7 +179,7 @@ function showConfirmationDialog(modelPath, fileSizeMB) {
     // Handle confirm
     const confirmHandler = async () => {
         dialog.classList.remove('show');
-        await loadNewModel(modelPath);
+        await loadNewModel(modelPath, sceneConfig);
         cleanup();
     };
 
@@ -184,10 +209,15 @@ async function init() {
     renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
     document.body.appendChild(renderer.domElement);
 
-    // Create camera and scene
+    // Create camera and scene with default damage zone config
+    const defaultConfig = getDamageZoneConfig();
     camera = createCamera();
-    camera.position.set(INITIAL_CAMERA_POSITION.x, INITIAL_CAMERA_POSITION.y, INITIAL_CAMERA_POSITION.z);
-    scene = createScene(true, lightBrightness);
+    camera.position.set(
+        defaultConfig.cameraPosition.x,
+        defaultConfig.cameraPosition.y,
+        defaultConfig.cameraPosition.z
+    );
+    scene = createScene(defaultConfig.includeDirectionalLight, defaultConfig.lightBrightness);
 
     // Setup render manager
     renderManager = new RenderManager(renderer, scene, camera);
@@ -211,7 +241,7 @@ async function init() {
 
         if (button) {
             button.addEventListener('click', () => {
-                handleModelLoad(modelInfo.path, modelInfo.filename);
+                handleModelLoad(modelInfo.path, modelInfo.filename, modelInfo.sceneType);
             });
         }
     });
