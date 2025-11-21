@@ -8,7 +8,7 @@ export { loadGLTFModel } from './sceneSetupShared.js';
 export function getSceneConfig() {
     return {
         includeDirectionalLight: false,
-        lightBrightness: 2,
+        lightBrightness: 5,
         cameraPosition: { x: 0, y: 0, z: 10000 }
     };
 }
