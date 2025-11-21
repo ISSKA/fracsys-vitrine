@@ -202,8 +202,10 @@ function showConfirmationDialog(modelPath, fileSizeMB, sceneConfig) {
 
 /**
  * Show WIP dialog and handle model loading
+ * @param {string} modelPath - Path to the model file
+ * @param {Object} sceneConfig - Scene configuration object
  */
-function showWIPDialog(modelPath) {
+function showWIPDialog(modelPath, sceneConfig) {
     const dialog = document.getElementById('wip-dialog');
     const okButton = document.getElementById('wip-ok-button');
 
@@ -213,7 +215,7 @@ function showWIPDialog(modelPath) {
     // Handle OK click
     const okHandler = async () => {
         dialog.classList.remove('show');
-        await loadNewModel(modelPath);
+        await loadNewModel(modelPath, sceneConfig);
         okButton.removeEventListener('click', okHandler);
     };
 
@@ -255,30 +257,25 @@ async function init() {
     // Do initial render to show the empty scene
     renderManager.requestRenderIfNotRequested();
 
-    // Setup button event listeners
-    const damageZoneButton = document.getElementById('damage-zone-button');
-    const damageZoneOptimizedButton = document.getElementById('damage-zone-optimized-button');
-    const fractureZoneButton = document.getElementById('fracture-zone-button');
+    // Setup button event listeners using MODEL_CONFIG
+    Object.keys(MODEL_CONFIG).forEach(buttonId => {
+        const button = document.getElementById(buttonId);
+        const modelInfo = MODEL_CONFIG[buttonId];
 
-    damageZoneButton.addEventListener('click', () => {
-        const fileSizeMB = getModelSize('voxels.gltf');
-        if (fileSizeMB > 100) {
-            showConfirmationDialog('models/voxels.gltf', fileSizeMB);
-        } else {
-            loadNewModel('models/voxels.gltf');
-        }
-    });
+        if (button) {
+            button.addEventListener('click', () => {
+                const sceneConfig = SCENE_CONFIGS[modelInfo.sceneType]();
+                const fileSizeMB = getModelSize(modelInfo.filename);
 
-    damageZoneOptimizedButton.addEventListener('click', () => {
-        showWIPDialog('models/damage_zone_optimized.gltf');
-    });
-
-    fractureZoneButton.addEventListener('click', () => {
-        const fileSizeMB = getModelSize('fracture_scene.gltf');
-        if (fileSizeMB > 100) {
-            showConfirmationDialog('models/fracture_scene.gltf', fileSizeMB);
-        } else {
-            loadNewModel('models/fracture_scene.gltf');
+                // Check if this is the optimized model (WIP)
+                if (buttonId === 'damage-zone-optimized-button') {
+                    showWIPDialog(modelInfo.path, sceneConfig);
+                } else if (fileSizeMB > FILE_SIZE_THRESHOLD_MB) {
+                    showConfirmationDialog(modelInfo.path, fileSizeMB, sceneConfig);
+                } else {
+                    loadNewModel(modelInfo.path, sceneConfig);
+                }
+            });
         }
     });
 
