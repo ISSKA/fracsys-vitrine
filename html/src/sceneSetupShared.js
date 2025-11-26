@@ -64,6 +64,19 @@ export function loadGLTFModel(scene, modelPath) {
                 const model = gltf.scene;
                 scene.add(model);
 
+                // Apply flat shading to ignore imported normals
+                model.traverse((child) => {
+                    if (child.isMesh) {
+                        // Clone material if it's shared to avoid affecting other meshes
+                        if (child.material.userData.isShared) {
+                            child.material = child.material.clone();
+                        }
+                        child.material.flatShading = true;
+                        child.material.side = THREE.DoubleSide; // Render both sides
+                        child.material.needsUpdate = true;
+                    }
+                });
+
                 // Calculate bounding box for camera positioning
                 const box = new THREE.Box3().setFromObject(model);
                 const center = box.getCenter(new THREE.Vector3());

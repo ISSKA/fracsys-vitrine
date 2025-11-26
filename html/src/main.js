@@ -90,11 +90,27 @@ function getModelSize(filename) {
 }
 
 /**
+ * Show or hide the colorbar overlay based on scene type
+ * @param {string} sceneType - The type of scene being displayed
+ */
+function updateColorbarVisibility(sceneType) {
+    const colorbarOverlay = document.getElementById('colorbar-overlay');
+    if (colorbarOverlay) {
+        if (sceneType === 'fracture') {
+            colorbarOverlay.classList.remove('hidden');
+        } else {
+            colorbarOverlay.classList.add('hidden');
+        }
+    }
+}
+
+/**
  * Load a new model and replace the current one
  * @param {string} modelPath - Path to the model file
  * @param {Object} sceneConfig - Scene configuration object
+ * @param {string} sceneType - The type of scene being displayed
  */
-async function loadNewModel(modelPath, sceneConfig) {
+async function loadNewModel(modelPath, sceneConfig, sceneType) {
     // Show loading overlay
     const loadingOverlay = document.getElementById('loading-overlay');
     if (loadingOverlay) {
@@ -138,6 +154,9 @@ async function loadNewModel(modelPath, sceneConfig) {
         sceneConfig.cameraPosition.z
     );
 
+    // Update colorbar visibility based on scene type
+    updateColorbarVisibility(sceneType);
+
     // Request a render
     renderManager.requestRenderIfNotRequested();
 }
@@ -152,9 +171,9 @@ function handleModelLoad(modelPath, filename, sceneType) {
     const sceneConfig = SCENE_CONFIGS[sceneType]();
     const fileSizeMB = getModelSize(filename);
     if (fileSizeMB > FILE_SIZE_THRESHOLD_MB) {
-        showConfirmationDialog(modelPath, fileSizeMB, sceneConfig);
+        showConfirmationDialog(modelPath, fileSizeMB, sceneConfig, sceneType);
     } else {
-        loadNewModel(modelPath, sceneConfig);
+        loadNewModel(modelPath, sceneConfig, sceneType);
     }
 }
 
@@ -163,8 +182,9 @@ function handleModelLoad(modelPath, filename, sceneType) {
  * @param {string} modelPath - Path to the model file
  * @param {number} fileSizeMB - File size in MB
  * @param {Object} sceneConfig - Scene configuration object
+ * @param {string} sceneType - The type of scene being displayed
  */
-function showConfirmationDialog(modelPath, fileSizeMB, sceneConfig) {
+function showConfirmationDialog(modelPath, fileSizeMB, sceneConfig, sceneType) {
     const dialog = document.getElementById('confirmation-dialog');
     const confirmButton = document.getElementById('confirm-button');
     const cancelButton = document.getElementById('cancel-button');
@@ -179,7 +199,7 @@ function showConfirmationDialog(modelPath, fileSizeMB, sceneConfig) {
     // Handle confirm
     const confirmHandler = async () => {
         dialog.classList.remove('show');
-        await loadNewModel(modelPath, sceneConfig);
+        await loadNewModel(modelPath, sceneConfig, sceneType);
         cleanup();
     };
 
@@ -204,8 +224,9 @@ function showConfirmationDialog(modelPath, fileSizeMB, sceneConfig) {
  * Show WIP dialog and handle model loading
  * @param {string} modelPath - Path to the model file
  * @param {Object} sceneConfig - Scene configuration object
+ * @param {string} sceneType - The type of scene being displayed
  */
-function showWIPDialog(modelPath, sceneConfig) {
+function showWIPDialog(modelPath, sceneConfig, sceneType) {
     const dialog = document.getElementById('wip-dialog');
     const okButton = document.getElementById('wip-ok-button');
 
@@ -215,7 +236,7 @@ function showWIPDialog(modelPath, sceneConfig) {
     // Handle OK click
     const okHandler = async () => {
         dialog.classList.remove('show');
-        await loadNewModel(modelPath, sceneConfig);
+        await loadNewModel(modelPath, sceneConfig, sceneType);
         okButton.removeEventListener('click', okHandler);
     };
 
@@ -269,11 +290,11 @@ async function init() {
 
                 // Check if this is the optimized model (WIP)
                 if (buttonId === 'damage-zone-optimized-button') {
-                    showWIPDialog(modelInfo.path, sceneConfig);
+                    showWIPDialog(modelInfo.path, sceneConfig, modelInfo.sceneType);
                 } else if (fileSizeMB > FILE_SIZE_THRESHOLD_MB) {
-                    showConfirmationDialog(modelInfo.path, fileSizeMB, sceneConfig);
+                    showConfirmationDialog(modelInfo.path, fileSizeMB, sceneConfig, modelInfo.sceneType);
                 } else {
-                    loadNewModel(modelInfo.path, sceneConfig);
+                    loadNewModel(modelInfo.path, sceneConfig, modelInfo.sceneType);
                 }
             });
         }
