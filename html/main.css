@@ -218,9 +218,8 @@ html, body {
 
 #colorbar-overlay {
   position: absolute;
-  right: 20px;
-  top: 50%;
-  transform: translateY(-50%);
+  left: 20px;
+  bottom: 20px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -233,9 +232,9 @@ html, body {
 }
 
 #colorbar-overlay img {
-  max-width: 150px;
-  height: auto;
-  border: 2px solid rgba(255, 255, 255, 0.5);
+  max-height: 50px;
+  width: auto;
+  border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 5px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
