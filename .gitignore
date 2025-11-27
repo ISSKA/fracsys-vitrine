@@ -1,2 +1,5 @@
 .idea/
 .claude/
+
+# Ignoring file with secrets
+.env
