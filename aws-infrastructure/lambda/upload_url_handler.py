@@ -2,8 +2,13 @@ import json
 import os
 import urllib.parse
 import boto3
+from botocore.config import Config
 
-s3_client = boto3.client("s3")
+s3_client = boto3.client(
+    "s3",
+    region_name="eu-central-1",
+    config=Config(signature_version="s3v4")
+)
 
 BUCKET_NAME = os.environ.get("BUCKET_NAME")
 DEFAULT_EXPIRES_SECONDS = int(os.environ.get("DEFAULT_EXPIRES_SECONDS", "3600"))
