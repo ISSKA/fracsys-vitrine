@@ -36,8 +36,22 @@ class S3SignedUrlAccessStack(Stack):
             },
         )
 
+        upload_url_lambda = _lambda.Function(
+            self,
+            "UploadUrlLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="upload_url_handler.handler",
+            code=_lambda.Code.from_asset("lambda"),
+            timeout=Duration.seconds(10),
+            environment={
+                "BUCKET_NAME": models_bucket.bucket_name,
+                "DEFAULT_EXPIRES_SECONDS": "3600",  # 1 Stunde
+            },
+        )
+
         # Berechtigungen: Lambda darf aus dem Bucket lesen (für presigned URLs)
         models_bucket.grant_read(signed_url_lambda)
+        models_bucket.grant_write(upload_url_lambda)
 
         # 3) API Gateway REST API
         api = apigw.RestApi(
@@ -50,10 +64,8 @@ class S3SignedUrlAccessStack(Stack):
             ),
         )
 
-        # /signed-url Resource
+        # infrastructre for /signed_url
         signed_url_resource = api.root.add_resource("signed-url")
-
-        # GET /signed-url
         signed_url_integration = apigw.LambdaIntegration(
             signed_url_lambda,
             proxy=True,
@@ -62,7 +74,11 @@ class S3SignedUrlAccessStack(Stack):
 
         # signed url for upload (PUT)
         upload_url_resource = api.root.add_resource("upload-url")
-        upload_url_resource.add_method("GET", apigw.LambdaIntegration(signed_url_lambda))
+        signed_url_integration = apigw.LambdaIntegration(
+            upload_url_lambda,
+            proxy=True,
+        )
+        upload_url_resource.add_method("GET", apigw.LambdaIntegration(upload_url_lambda))
 
         # Optional: Endpoint-URL als Output
         cdk.CfnOutput(
