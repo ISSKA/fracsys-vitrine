@@ -42,6 +42,7 @@ def handler(event, context):
     key = urllib.parse.unquote(key)
 
     try:
+        print(f"Ask S3 bucket {BUCKET_NAME} for presigned url")
         presigned_url = s3_client.generate_presigned_url(
             ClientMethod="get_object",
             Params={

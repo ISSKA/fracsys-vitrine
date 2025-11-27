@@ -20,6 +20,13 @@ class S3SignedUrlAccessStack(Stack):
             block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
             enforce_ssl=True,
             versioned=False,
+            cors=[
+                s3.CorsRule(
+                    allowed_methods=[s3.HttpMethods.GET],    # für Download
+                    allowed_origins=["*"], #allowed_origins=["https://fracsys-vitrine.ch"],
+                    allowed_headers=["*"],
+                )
+            ],
         )
 
         # 2) Lambda Function, die Signed URLs erzeugt
@@ -51,7 +58,7 @@ class S3SignedUrlAccessStack(Stack):
 
         # Berechtigungen: Lambda darf aus dem Bucket lesen (für presigned URLs)
         models_bucket.grant_read(signed_url_lambda)
-        models_bucket.grant_write(upload_url_lambda)
+        models_bucket.grant_put(upload_url_lambda)
 
         # 3) API Gateway REST API
         api = apigw.RestApi(
@@ -85,12 +92,12 @@ class S3SignedUrlAccessStack(Stack):
             self,
             "SignedUrlDownloadEndpoint",
             value=api.url + "signed-url",
-            description="API endpoint for generating signed URLs",
+            description="API endpoint for generating signed URLs used for downloading",
         )
 
         cdk.CfnOutput(
             self,
             "SignedUrlUploadEndpoint",
             value=api.url + "upload-url",
-            description="API endpoint for generating signed URLs",
+            description="API endpoint for generating signed URLs used for uploading",
         )

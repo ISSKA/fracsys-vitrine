@@ -26,7 +26,7 @@ def test_download_endpoint_no_key():
     assert resp.status_code == 400
 
     data = resp.json()
-    assert "Missing required" in data["error"]    
+    assert "Missing required" in data["error"]
 
 
 def test_upload_endpoint():
