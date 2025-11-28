@@ -1,12 +1,14 @@
-import pytest
+import shutil
 import os
 import requests
 from urllib.parse import quote
 from dotenv import load_dotenv
 
+S3_TEST_FILE = "s3_test_file.txt"
+
 def test_download_endpoint():
     load_dotenv()
-    key = "fracture_scene.gltf"
+    key = S3_TEST_FILE
     url = f"{os.getenv('SignedUrlDownloadEndpoint')}?key={quote(key)}"
     resp = requests.get(url)
 
@@ -15,6 +17,10 @@ def test_download_endpoint():
     data = resp.json()
     signed_url = data["signedUrl"]
     assert "fracsysmodels20251127" in signed_url
+
+    resp = requests.get(signed_url)
+    file_content = str(resp.content)
+    assert "File used for S3 connection tests." in file_content
 
 
 def test_download_endpoint_no_key():
@@ -26,7 +32,7 @@ def test_download_endpoint_no_key():
     assert resp.status_code == 400
 
     data = resp.json()
-    assert "Missing required" in data["error"]
+    assert "Missing key" in data["error"]
 
 
 def test_upload_endpoint():
