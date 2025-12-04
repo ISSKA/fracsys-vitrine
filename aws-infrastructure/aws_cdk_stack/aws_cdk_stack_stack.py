@@ -8,6 +8,8 @@ from aws_cdk import (
     aws_apigateway as apigw,
 )
 
+URL_EXPIRES_SECONDS = 60
+
 class S3SignedUrlAccessStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
@@ -23,7 +25,8 @@ class S3SignedUrlAccessStack(Stack):
             cors=[
                 s3.CorsRule(
                     allowed_methods=[s3.HttpMethods.GET],    # für Download
-                    allowed_origins=["*"], #allowed_origins=["https://fracsys-vitrine.ch"],
+                    # allowed_origins=["*"], #allowed_origins=["https://fracsys-vitrine.ch"],
+                    allowed_origins=["https://fracsys-vitrine.ch"],
                     allowed_headers=["*"],
                 )
             ],
@@ -39,7 +42,7 @@ class S3SignedUrlAccessStack(Stack):
             timeout=Duration.seconds(10),
             environment={
                 "BUCKET_NAME": models_bucket.bucket_name,
-                "DEFAULT_EXPIRES_SECONDS": "3600",  # 1 Stunde
+                "DEFAULT_EXPIRES_SECONDS": str(URL_EXPIRES_SECONDS),
             },
         )
 
@@ -52,7 +55,7 @@ class S3SignedUrlAccessStack(Stack):
             timeout=Duration.seconds(10),
             environment={
                 "BUCKET_NAME": models_bucket.bucket_name,
-                "DEFAULT_EXPIRES_SECONDS": "3600",  # 1 Stunde
+                "DEFAULT_EXPIRES_SECONDS": str(URL_EXPIRES_SECONDS),
             },
         )
 
