@@ -27,6 +27,13 @@ def handler(event, context):
 
     key = urllib.parse.unquote(key)
 
+    # Debug-Logs:
+    print("### DEBUG ###")
+    print("BUCKET_NAME repr:", repr(BUCKET_NAME))
+    print("RAW KEY repr:   ", repr(key))
+    print("DECODED KEY repr:", repr(key))
+
+
     content_type = params.get("contentType", "application/octet-stream")
 
     try:
@@ -51,6 +58,8 @@ def handler(event, context):
     except Exception as e:
         print(f"Error generating upload presigned URL: {e}")
         return _response(500, {"error": "Failed to generate upload presigned URL"})
+
+    print("PRESIGNED_URL:", presigned_url)
 
     return _response(
         200,

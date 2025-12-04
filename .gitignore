@@ -6,3 +6,6 @@
 
 *.glb
 *.glft
+
+# ignoring virtual env
+venv/

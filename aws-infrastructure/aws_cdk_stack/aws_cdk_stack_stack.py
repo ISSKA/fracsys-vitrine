@@ -25,8 +25,8 @@ class S3SignedUrlAccessStack(Stack):
             cors=[
                 s3.CorsRule(
                     allowed_methods=[s3.HttpMethods.GET],    # für Download
-                    # allowed_origins=["*"], #allowed_origins=["https://fracsys-vitrine.ch"],
-                    allowed_origins=["https://fracsys-vitrine.ch"],
+                    allowed_origins=["*"],
+                    # allowed_origins=["https://fracsys-vitrine.ch"],
                     allowed_headers=["*"],
                 )
             ],
@@ -60,6 +60,7 @@ class S3SignedUrlAccessStack(Stack):
         )
 
         # Berechtigungen: Lambda darf aus dem Bucket lesen (für presigned URLs)
+        # Nur diese beiden Operationen sind erlaubt.
         models_bucket.grant_read(signed_url_lambda)
         models_bucket.grant_put(upload_url_lambda)
 
