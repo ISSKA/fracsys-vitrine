@@ -32,12 +32,12 @@ class S3SignedUrlAccessStack(Stack):
             ],
         )
 
-        # 2) Lambda Function, die Signed URLs erzeugt
-        signed_url_lambda = _lambda.Function(
+        # 2) Lambda Function, die Signed URLs für den Upload erzeugt
+        download_url_lambda = _lambda.Function(
             self,
-            "SignedUrlLambda",
+            "DownloadUrlLambda",
             runtime=_lambda.Runtime.PYTHON_3_12,
-            handler="signed_url_handler.handler",
+            handler="download_url_handler.handler",
             code=_lambda.Code.from_asset("lambda"),
             timeout=Duration.seconds(10),
             environment={
@@ -61,7 +61,7 @@ class S3SignedUrlAccessStack(Stack):
 
         # Berechtigungen: Lambda darf aus dem Bucket lesen (für presigned URLs)
         # Nur diese beiden Operationen sind erlaubt.
-        models_bucket.grant_read(signed_url_lambda)
+        models_bucket.grant_read(download_url_lambda)
         models_bucket.grant_put(upload_url_lambda)
 
         # 3) API Gateway REST API
@@ -76,26 +76,26 @@ class S3SignedUrlAccessStack(Stack):
         )
 
         # infrastructre for /signed_url
-        signed_url_resource = api.root.add_resource("signed-url")
-        signed_url_integration = apigw.LambdaIntegration(
-            signed_url_lambda,
+        download_url_resource = api.root.add_resource("download-url")
+        download_url_integration = apigw.LambdaIntegration(
+            download_url_lambda,
             proxy=True,
         )
-        signed_url_resource.add_method("GET", signed_url_integration)
+        download_url_resource.add_method("GET", download_url_integration)
 
         # signed url for upload (PUT)
         upload_url_resource = api.root.add_resource("upload-url")
-        signed_url_integration = apigw.LambdaIntegration(
+        upload_url_integration = apigw.LambdaIntegration(
             upload_url_lambda,
             proxy=True,
         )
-        upload_url_resource.add_method("GET", apigw.LambdaIntegration(upload_url_lambda))
+        upload_url_resource.add_method("GET", upload_url_integration)
 
         # Optional: Endpoint-URL als Output
         cdk.CfnOutput(
             self,
             "SignedUrlDownloadEndpoint",
-            value=api.url + "signed-url",
+            value=api.url + "download-url",
             description="API endpoint for generating signed URLs used for downloading",
         )
 
