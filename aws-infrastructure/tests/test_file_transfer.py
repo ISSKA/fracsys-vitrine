@@ -11,15 +11,18 @@ S3_TEST_FILE = "s3_test_file.txt"
 # we create some urls, thus we make them short-lived
 URL_EXPIRES_SECONDS = 10
 
+@pytest.fixture(scope="session", autouse=True)
+def load_environment():
+    load_dotenv()
+
 @pytest.fixture(scope="session")
 def shared_data_file(tmp_path_factory) -> Path:
     temp_dir = tmp_path_factory.mktemp("data")
-    file_path = temp_dir / "transfer_test.txt"
+    file_path = temp_dir / S3_TEST_FILE
     file_path.write_text("File used for S3 connection tests.")
     return file_path
 
 def test_can_upload_file(shared_data_file: Path):
-    load_dotenv()
     key = shared_data_file.name
     url = f"{os.getenv('SignedUrlUploadEndpoint')}?key={quote(key)}&expires={URL_EXPIRES_SECONDS}"
     resp = requests.get(url)
@@ -41,7 +44,6 @@ def test_can_upload_file(shared_data_file: Path):
 
 
 def test_can_download_file(shared_data_file: Path) -> None:
-    load_dotenv()
     key = shared_data_file.name
     url = f"{os.getenv('SignedUrlDownloadEndpoint')}?key={quote(key)}"
     resp = requests.get(url)
