@@ -14,7 +14,7 @@ URL_EXPIRES_SECONDS = 10
 @pytest.fixture(scope="session")
 def shared_data_file(tmp_path_factory) -> Path:
     temp_dir = tmp_path_factory.mktemp("data")
-    file_path = temp_dir / "numbers.txt"
+    file_path = temp_dir / "transfer_test.txt"
     file_path.write_text("File used for S3 connection tests.")
     return file_path
 
