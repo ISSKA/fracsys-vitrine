@@ -25,6 +25,49 @@ Une fois l'application lancée, vous pouvez :
 - **Bouton droit de la souris** : Déplacement de la vue (pan)
 - **Molette de la souris** : Zoom avant/arrière
 
+#### Infrastructure AWS avec CDK
+
+Le projet inclut une infrastructure AWS pour stocker et servir des modèles 3D via des URLs signées.
+
+**Architecture :**
+- **Bucket S3** : Stockage privé pour les modèles 3D
+- **Lambda Functions** : Génération d'URLs signées pour l'upload et le téléchargement
+- **API Gateway** : Endpoints REST pour accéder aux fonctions Lambda
+
+**Prérequis :**
+- Python 3.12+
+- AWS CLI configuré avec vos credentials
+- AWS CDK CLI : `npm install -g aws-cdk`
+
+**Installation :**
+```bash
+cd aws-infrastructure
+python -m venv .venv
+source .venv/bin/activate  # Sur Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+**Déploiement :**
+```bash
+# Première fois uniquement : bootstrap CDK dans votre compte AWS
+cdk bootstrap
+
+# Déployer la stack
+cdk deploy
+```
+
+**Endpoints disponibles :**
+- `GET /download-url?key=path/to/model.glb&expires=60` - Génère une URL signée pour télécharger un modèle
+- `GET /upload-url?key=path/to/model.glb&contentType=model/gltf-binary&expires=60` - Génère une URL signée pour uploader un modèle
+
+Les URLs signées expirent après 60 secondes par défaut.
+
+**Tests :**
+```bash
+cd aws-infrastructure
+python -m pytest tests/
+```
+
 ### English
 Small webpage to demonstrate the progress of the FracSYS project.
 
@@ -49,6 +92,49 @@ Once the application is running, you can:
 - **Shift + Left button**: Rotate on Z-axis
 - **Right mouse button**: Pan the view
 - **Mouse wheel**: Zoom in/out
+
+#### AWS Infrastructure with CDK
+
+The project includes AWS infrastructure for storing and serving 3D models via signed URLs.
+
+**Architecture:**
+- **S3 Bucket**: Private storage for 3D models
+- **Lambda Functions**: Generate signed URLs for upload and download operations
+- **API Gateway**: REST endpoints to access Lambda functions
+
+**Prerequisites:**
+- Python 3.12+
+- AWS CLI configured with your credentials
+- AWS CDK CLI: `npm install -g aws-cdk`
+
+**Installation:**
+```bash
+cd aws-infrastructure
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+**Deployment:**
+```bash
+# First time only: bootstrap CDK in your AWS account
+cdk bootstrap
+
+# Deploy the stack
+cdk deploy
+```
+
+**Available Endpoints:**
+- `GET /download-url?key=path/to/model.glb&expires=60` - Generates a signed URL to download a model
+- `GET /upload-url?key=path/to/model.glb&contentType=model/gltf-binary&expires=60` - Generates a signed URL to upload a model
+
+Signed URLs expire after 60 seconds by default.
+
+**Testing:**
+```bash
+cd aws-infrastructure
+python -m pytest tests/
+```
 
 
 
