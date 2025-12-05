@@ -1,2 +1,11 @@
 .idea/
 .claude/
+
+# Ignoring file with secrets
+.env
+
+*.glb
+*.glft
+
+# ignoring virtual env
+venv/
