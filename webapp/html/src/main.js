@@ -18,17 +18,17 @@ const FILE_SIZE_THRESHOLD_MB = 100;
 const MODEL_CONFIG = {
     'damage-zone-button': {
         filename: 'damage_zone.gltf',
-        path: 'models/damage_zone.gltf',
+        path: 'damage_zone.gltf',
         sceneType: 'damageZone'
     },
     'damage-zone-optimized-button': {
         filename: 'damage_zone_optimized.gltf',
-        path: 'models/damage_zone_optimized.gltf',
+        path: 'damage_zone_optimized.gltf',
         sceneType: 'damageZone'
     },
     'fracture-zone-button': {
         filename: 'fracture_scene.gltf',
-        path: 'models/fracture_scene.gltf',
+        path: 'fracture_scene.gltf',
         sceneType: 'fracture'
     }
 };
@@ -267,7 +267,7 @@ async function init() {
     renderManager = new RenderManager(renderer, scene, camera);
 
     // Fetch model sizes from backend
-    await fetchModelSizes();
+    //await fetchModelSizes();
 
     // Hide the loading overlay since we start with no model
     const loadingOverlay = document.getElementById('loading-overlay');
