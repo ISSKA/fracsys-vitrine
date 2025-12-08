@@ -42,7 +42,7 @@ export function createScene(includeDirectionalLight = true, brightness = 2) {
  * @param {string} objectKey -  The file name to get from AWS bucket
  * @returns The signed url that must be used to download the file.
  */
-async function getSignedUrl(objectKey) {
+export async function getSignedUrl(objectKey) {
   const apiEndpoint = "https://xhx5lqfvq1.execute-api.eu-central-1.amazonaws.com/prod/download-url";
 
   const url = `${apiEndpoint}?key=${encodeURIComponent(objectKey)}`;

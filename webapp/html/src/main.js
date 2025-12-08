@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { loadGLTFModel, createCamera, createScene } from './sceneSetupShared.js';
+import { loadGLTFModel, createCamera, createScene, getSignedUrl } from './sceneSetupShared.js';
 import { getSceneConfig as getDamageZoneConfig } from './sceneSetupDamageZone.js';
 import { getSceneConfig as getFractureConfig } from './sceneSetupFracture.js';
 import { setupMouseControls } from './mouseControls.js';
@@ -87,6 +87,29 @@ async function fetchModelSizes() {
  */
 function getModelSize(filename) {
     return modelSizes[filename] || 0;
+}
+
+/**
+ * Load colorbar images from S3 bucket
+ */
+async function loadColorbars() {
+    const colorbars = [
+        { id: 'colorbar-flow', filename: 'colorbar_flow.png' },
+        { id: 'colorbar-head', filename: 'colorbar_head.png' }
+    ];
+
+    try {
+        for (const colorbar of colorbars) {
+            const signedUrl = await getSignedUrl(colorbar.filename);
+            const imgElement = document.getElementById(colorbar.id);
+            if (imgElement) {
+                imgElement.src = signedUrl;
+                console.log(`Loaded colorbar: ${colorbar.filename}`);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading colorbars:', error);
+    }
 }
 
 /**
@@ -268,6 +291,9 @@ async function init() {
 
     // Fetch model sizes from backend
     //await fetchModelSizes();
+
+    // Load colorbars from S3
+    await loadColorbars();
 
     // Hide the loading overlay since we start with no model
     const loadingOverlay = document.getElementById('loading-overlay');
