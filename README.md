@@ -3,6 +3,9 @@
 ### French
 Petite page web pour présenter l'avancement du projet FracSYS.
 
+#### Infrastructure AWS
+Pour plus d'informations sur l'infrastructure AWS et son déploiement, consultez la [documentation de déploiement AWS](docu/AWS_DEPLOYMENT_FR.md).
+
 #### Déploiement
 L'application doit être déployée sur un serveur web. Un fichier docker-compose est disponible pour faciliter le développement sans serveur.
 Installez Docker (ou podman) et exécutez
@@ -70,6 +73,9 @@ python -m pytest tests/
 
 ### English
 Small webpage to demonstrate the progress of the FracSYS project.
+
+#### AWS Infrastructure
+For more information about the AWS infrastructure and deployment, see the [AWS deployment documentation](docu/AWS_DEPLOYMENT.md).
 
 #### Deployment
 The app must be deployed on a webserver. There is a docker-compose file for easier development without a server.
