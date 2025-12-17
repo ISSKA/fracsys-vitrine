@@ -17,7 +17,7 @@ const FILE_SIZE_THRESHOLD_MB = 100;
 // Model configuration
 const MODEL_CONFIG = {
     'damage-zone-button': {
-        filename: 'damage_zone.gltf',
+        filename: 'damagIs e_zone.gltf',
         path: 'damage_zone.gltf',
         sceneType: 'damageZone'
     },
@@ -317,6 +317,9 @@ async function init() {
                 // Check if this is the optimized model (WIP)
                 if (buttonId === 'damage-zone-optimized-button') {
                     showWIPDialog(modelInfo.path, sceneConfig, modelInfo.sceneType);
+                } else if (buttonId === 'damage-zone-button') {
+                    // Always show confirmation dialog for damage zone model
+                    showConfirmationDialog(modelInfo.path, fileSizeMB, sceneConfig, modelInfo.sceneType);
                 } else if (fileSizeMB > FILE_SIZE_THRESHOLD_MB) {
                     showConfirmationDialog(modelInfo.path, fileSizeMB, sceneConfig, modelInfo.sceneType);
                 } else {
