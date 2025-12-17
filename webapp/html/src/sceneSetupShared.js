@@ -38,19 +38,38 @@ export function createScene(includeDirectionalLight = true, brightness = 2) {
 }
 
 /**
+ * Get the signed url from AWS to download the file.
+ * @param {string} objectKey -  The file name to get from AWS bucket
+ * @returns The signed url that must be used to download the file.
+ */
+export async function getSignedUrl(objectKey) {
+  const apiEndpoint = "https://xhx5lqfvq1.execute-api.eu-central-1.amazonaws.com/prod/download-url";
+
+  const url = `${apiEndpoint}?key=${encodeURIComponent(objectKey)}`;
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to get signed URL: ${response.status}`);
+  }
+  const data = await response.json();
+  return data.signedUrl;
+}
+
+/**
  * Load and display the glTF fracture model
  * @param {THREE.Scene} scene - The Three.js scene
  * @param {string} modelPath - Path to the glTF file
  * @returns {Promise<Object>} Model data including the loaded object and bounding box
  */
-export function loadGLTFModel(scene, modelPath) {
-    return new Promise((resolve, reject) => {
+export async function loadGLTFModel(scene, modelPath) {
+    const signedUrl = await getSignedUrl(modelPath);
+    return new Promise(async (resolve, reject) => {
         const loader = new GLTFLoader();
-
+        console.log(`signed urL: ${signedUrl}`)
         console.log(`Loading glTF model from: ${modelPath}`);
 
         loader.load(
-            modelPath,
+            signedUrl,
             // onLoad callback
             (gltf) => {
                 console.log('glTF model loaded successfully');

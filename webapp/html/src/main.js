@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { loadGLTFModel, createCamera, createScene } from './sceneSetupShared.js';
+import { loadGLTFModel, createCamera, createScene, getSignedUrl } from './sceneSetupShared.js';
 import { getSceneConfig as getDamageZoneConfig } from './sceneSetupDamageZone.js';
 import { getSceneConfig as getFractureConfig } from './sceneSetupFracture.js';
 import { setupMouseControls } from './mouseControls.js';
@@ -18,17 +18,17 @@ const FILE_SIZE_THRESHOLD_MB = 100;
 const MODEL_CONFIG = {
     'damage-zone-button': {
         filename: 'damage_zone.gltf',
-        path: 'models/damage_zone.gltf',
+        path: 'damage_zone.gltf',
         sceneType: 'damageZone'
     },
     'damage-zone-optimized-button': {
         filename: 'damage_zone_optimized.gltf',
-        path: 'models/damage_zone_optimized.gltf',
+        path: 'damage_zone_optimized.gltf',
         sceneType: 'damageZone'
     },
     'fracture-zone-button': {
         filename: 'fracture_scene.gltf',
-        path: 'models/fracture_scene.gltf',
+        path: 'fracture_scene.gltf',
         sceneType: 'fracture'
     }
 };
@@ -87,6 +87,29 @@ async function fetchModelSizes() {
  */
 function getModelSize(filename) {
     return modelSizes[filename] || 0;
+}
+
+/**
+ * Load colorbar images from S3 bucket
+ */
+async function loadColorbars() {
+    const colorbars = [
+        { id: 'colorbar-flow', filename: 'colorbar_flow.png' },
+        { id: 'colorbar-head', filename: 'colorbar_head.png' }
+    ];
+
+    try {
+        for (const colorbar of colorbars) {
+            const signedUrl = await getSignedUrl(colorbar.filename);
+            const imgElement = document.getElementById(colorbar.id);
+            if (imgElement) {
+                imgElement.src = signedUrl;
+                console.log(`Loaded colorbar: ${colorbar.filename}`);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading colorbars:', error);
+    }
 }
 
 /**
@@ -267,7 +290,10 @@ async function init() {
     renderManager = new RenderManager(renderer, scene, camera);
 
     // Fetch model sizes from backend
-    await fetchModelSizes();
+    //await fetchModelSizes();
+
+    // Load colorbars from S3
+    await loadColorbars();
 
     // Hide the loading overlay since we start with no model
     const loadingOverlay = document.getElementById('loading-overlay');
