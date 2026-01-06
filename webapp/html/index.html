@@ -8,8 +8,8 @@
     <script type="importmap">
         {
             "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@0.181.0/build/three.module.js",
-                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.181.0/examples/jsm/"
+                "three": "./lib/three@0.181.0/build/three.module.js",
+                "three/addons/": "./lib/three@0.181.0/examples/jsm/"
             }
         }
     </script>
@@ -43,20 +43,20 @@
       <button class="model-button" id="fracture-zone-button">Fracture Zone</button>
     </div>
     <div id="confirmation-dialog">
-      <div id="dialog-content">
+      <div class="dialog-content">
         <h2>Attention</h2>
         <p id="dialog-message">Ce modèle 3D est volumineux et peut prendre du temps à charger. Souhaitez-vous continuer?</p>
-        <div id="dialog-buttons">
+        <div class="dialog-buttons">
           <button class="dialog-button" id="confirm-button">Confirmer</button>
           <button class="dialog-button" id="cancel-button">Annuler</button>
         </div>
       </div>
     </div>
     <div id="wip-dialog">
-      <div id="dialog-content">
+      <div class="dialog-content">
         <h2>Travail en cours</h2>
         <p id="wip-message">Ce modèle est en cours de développement et pourrait ne pas s'afficher correctement.</p>
-        <div id="dialog-buttons">
+        <div class="dialog-buttons">
           <button class="dialog-button" id="wip-ok-button">OK</button>
         </div>
       </div>
