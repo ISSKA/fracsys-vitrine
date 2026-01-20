@@ -128,6 +128,17 @@ Production builds generate:
 - **assets/index-[hash].css** - Bundled and minified CSS
 - **assets/*.map** - Source maps for debugging
 
+## Deployment
+
+To deploy the webapp to Apache server:
+
+```bash
+npm run build
+# Then copy the contents of dist/ to /var/www/html/
+```
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions, troubleshooting, and common issues.
+
 ## Notes
 
 - Three.js is loaded from the local `lib/` directory (configured in vite.config.ts)
