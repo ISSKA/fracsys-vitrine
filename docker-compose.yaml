@@ -5,5 +5,5 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./webapp/html:/usr/local/apache2/htdocs:ro
+      - ./webapp/html/dist:/usr/local/apache2/htdocs:ro
     restart: unless-stopped
