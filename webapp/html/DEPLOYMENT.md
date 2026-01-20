@@ -60,18 +60,96 @@ After deployment, your server should have:
 
 **Verify**: Visit https://fracsys-vitrine.ch/assets/ - you should see the files listed (or get a 403 if directory listing is disabled, which is fine).
 
+## File Permissions
+
+Apache needs to read the files you deploy. The Apache user/group varies by distribution:
+
+| Distribution | User | Group |
+|--------------|------|-------|
+| Ubuntu/Debian | `www-data` | `www-data` |
+| CentOS/RHEL | `apache` | `apache` |
+| Fedora | `apache` | `apache` |
+
+### Check Apache User on Your Server
+
+```bash
+# Method 1: Check running process
+ps aux | grep apache2
+# or
+ps aux | grep httpd
+
+# Method 2: Check Apache config
+grep -r "^User\|^Group" /etc/apache2/ /etc/httpd/
+```
+
+### Fix Permissions After Deployment
+
+After copying files to `/var/www/html/`, set correct ownership and permissions:
+
+```bash
+# Find Apache user (Ubuntu/Debian example - www-data)
+APACHE_USER="www-data"
+
+# Set ownership
+sudo chown -R $APACHE_USER:$APACHE_USER /var/www/html/
+
+# Set permissions
+sudo find /var/www/html/ -type d -exec chmod 755 {} \;  # Directories
+sudo find /var/www/html/ -type f -exec chmod 644 {} \;  # Files
+```
+
+**For Ubuntu/Debian** (most common):
+```bash
+sudo chown -R www-data:www-data /var/www/html/
+sudo find /var/www/html/ -type d -exec chmod 755 {} \;
+sudo find /var/www/html/ -type f -exec chmod 644 {} \;
+```
+
+**For CentOS/RHEL/Fedora**:
+```bash
+sudo chown -R apache:apache /var/www/html/
+sudo find /var/www/html/ -type d -exec chmod 755 {} \;
+sudo find /var/www/html/ -type f -exec chmod 644 {} \;
+```
+
+### Deployment with Correct Permissions (Using rsync)
+
+The best approach is to use rsync with the `--chown` option:
+
+```bash
+# Ubuntu/Debian
+rsync -avz --delete --chown=www-data:www-data dist/ user@server:/var/www/html/
+
+# CentOS/RHEL/Fedora
+rsync -avz --delete --chown=apache:apache dist/ user@server:/var/www/html/
+```
+
+Note: This requires rsync 3.1.0+ and may need sudo on the remote side.
+
 ## Common Issues
 
 ### Issue 1: MIME Type Error for CSS
 
 **Error**: `Refused to apply style from '...' because its MIME type ('text/html') is not a supported stylesheet MIME type`
 
-**Cause**: The `assets/` folder is missing or in the wrong location.
+**Cause**: The `assets/` folder is missing, in the wrong location, or Apache can't read the files due to permissions.
 
 **Fix**:
 1. Check that `/var/www/html/assets/` exists on the server
 2. Ensure you copied the **contents** of `dist/`, not the folder itself
-3. Verify file permissions: `chmod 644 /var/www/html/assets/*`
+3. Fix permissions:
+```bash
+# Check current permissions
+ls -la /var/www/html/
+ls -la /var/www/html/assets/
+
+# Fix ownership (Ubuntu/Debian)
+sudo chown -R www-data:www-data /var/www/html/
+
+# Fix file permissions
+sudo find /var/www/html/ -type f -exec chmod 644 {} \;
+sudo find /var/www/html/ -type d -exec chmod 755 {} \;
+```
 
 ### Issue 2: 404 for Assets
 
@@ -143,29 +221,43 @@ If you see CSP errors after deployment, check the browser console for blocked re
 - [ ] Verify dist/ contains index.html and assets/ folder
 - [ ] Deploy contents of dist/ to /var/www/html/
 - [ ] SSH to server and verify files exist
-- [ ] Check file permissions (644 for files, 755 for directories)
+- [ ] Fix ownership: `sudo chown -R www-data:www-data /var/www/html/`
+- [ ] Fix permissions: 644 for files, 755 for directories
+- [ ] Verify Apache can read files: `sudo -u www-data cat /var/www/html/index.html`
 - [ ] Clear browser cache and test site
 - [ ] Verify all assets load (no 404 errors)
 - [ ] Test 3D model loading functionality
 
-## Automated Deployment Script
+## Automated Deployment Scripts
 
-You can use the provided `deploy.sh` script:
+### Manual Instructions Script
+
+The `deploy.sh` script builds and shows deployment instructions:
 
 ```bash
 ./deploy.sh
 ```
 
-This builds the project and shows deployment instructions.
+### Fully Automated Deployment
 
-For fully automated deployment, modify the script with your server details:
+The `deploy-to-server.sh` script automates everything including permissions:
 
 ```bash
-#!/bin/bash
-npm run build
-rsync -avz --delete dist/ user@fracsys-vitrine.ch:/var/www/html/
-echo "✅ Deployed to fracsys-vitrine.ch"
+./deploy-to-server.sh user@fracsys-vitrine.ch
 ```
+
+This script:
+1. Builds the project with Vite
+2. Deploys files via rsync
+3. Fixes ownership (sets to www-data/apache)
+4. Fixes permissions (644 for files, 755 for directories)
+5. Verifies deployment
+
+**Note**: You may need to configure the Apache user in the script:
+- Ubuntu/Debian: `APACHE_USER="www-data"` (default)
+- CentOS/RHEL/Fedora: `APACHE_USER="apache"`
+
+Edit line 14 of `deploy-to-server.sh` to match your server's Apache user.
 
 ## Rolling Back
 
