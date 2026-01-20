@@ -1,21 +1,34 @@
 import * as THREE from 'three';
-import { loadGLTFModel, createCamera, createScene, getSignedUrl } from './sceneSetupShared.js';
-import { getSceneConfig as getDamageZoneConfig } from './sceneSetupDamageZone.js';
+import { loadGLTFModel, createCamera, createScene, getSignedUrl, ModelData } from './sceneSetupShared.js';
+import { getSceneConfig as getDamageZoneConfig, SceneConfig } from './sceneSetupDamageZone.js';
 import { getSceneConfig as getFractureConfig } from './sceneSetupFracture.js';
 import { setupMouseControls } from './mouseControls.js';
 import { RenderManager } from './renderManager.js';
 
 // Global variables to track the current state
-let renderer, camera, scene, canvas, renderManager, currentModel;
+let renderer: THREE.WebGLRenderer;
+let camera: THREE.PerspectiveCamera;
+let scene: THREE.Scene;
+let canvas: HTMLCanvasElement;
+let renderManager: RenderManager;
+let currentModel: ModelData | null = null;
 
 // Cache for model sizes
-let modelSizes = {};
+let modelSizes: Record<string, number> = {};
 
 // Constants
 const FILE_SIZE_THRESHOLD_MB = 100;
 
 // Model configuration
-const MODEL_CONFIG = {
+interface ModelInfo {
+    filename: string;
+    path: string;
+    sceneType: 'damageZone' | 'fracture';
+}
+
+type ModelConfigKey = 'damage-zone-button' | 'damage-zone-optimized-button' | 'fracture-zone-button';
+
+const MODEL_CONFIG: Record<ModelConfigKey, ModelInfo> = {
     'damage-zone-button': {
         filename: 'damagIs e_zone.gltf',
         path: 'damage_zone.gltf',
@@ -34,7 +47,7 @@ const MODEL_CONFIG = {
 };
 
 // Scene configuration getters
-const SCENE_CONFIGS = {
+const SCENE_CONFIGS: Record<'damageZone' | 'fracture', () => SceneConfig> = {
     'damageZone': getDamageZoneConfig,
     'fracture': getFractureConfig
 };
@@ -42,7 +55,7 @@ const SCENE_CONFIGS = {
 /**
  * Fetch file size using HTTP HEAD request
  */
-async function fetchFileSize(url) {
+async function fetchFileSize(url: string): Promise<number | null> {
     try {
         const response = await fetch(url, { method: 'HEAD' });
         if (!response.ok) {
@@ -63,7 +76,7 @@ async function fetchFileSize(url) {
 /**
  * Fetch model sizes using HEAD requests
  */
-async function fetchModelSizes() {
+async function fetchModelSizes(): Promise<void> {
     const models = Object.values(MODEL_CONFIG);
 
     const sizePromises = models.map(async (model) => {
@@ -85,14 +98,14 @@ async function fetchModelSizes() {
 /**
  * Get file size for a model
  */
-function getModelSize(filename) {
+function getModelSize(filename: string): number {
     return modelSizes[filename] || 0;
 }
 
 /**
  * Load colorbar images from S3 bucket
  */
-async function loadColorbars() {
+async function loadColorbars(): Promise<void> {
     const colorbars = [
         { id: 'colorbar-flow', filename: 'colorbar_flow.png' },
         { id: 'colorbar-head', filename: 'colorbar_head.png' }
@@ -101,7 +114,7 @@ async function loadColorbars() {
     try {
         for (const colorbar of colorbars) {
             const signedUrl = await getSignedUrl(colorbar.filename);
-            const imgElement = document.getElementById(colorbar.id);
+            const imgElement = document.getElementById(colorbar.id) as HTMLImageElement | null;
             if (imgElement) {
                 imgElement.src = signedUrl;
                 console.log(`Loaded colorbar: ${colorbar.filename}`);
@@ -114,9 +127,9 @@ async function loadColorbars() {
 
 /**
  * Show or hide the colorbar overlay based on scene type
- * @param {string} sceneType - The type of scene being displayed
+ * @param sceneType - The type of scene being displayed
  */
-function updateColorbarVisibility(sceneType) {
+function updateColorbarVisibility(sceneType: 'damageZone' | 'fracture'): void {
     const colorbarOverlay = document.getElementById('colorbar-overlay');
     if (colorbarOverlay) {
         if (sceneType === 'fracture') {
@@ -129,11 +142,11 @@ function updateColorbarVisibility(sceneType) {
 
 /**
  * Load a new model and replace the current one
- * @param {string} modelPath - Path to the model file
- * @param {Object} sceneConfig - Scene configuration object
- * @param {string} sceneType - The type of scene being displayed
+ * @param modelPath - Path to the model file
+ * @param sceneConfig - Scene configuration object
+ * @param sceneType - The type of scene being displayed
  */
-async function loadNewModel(modelPath, sceneConfig, sceneType) {
+async function loadNewModel(modelPath: string, sceneConfig: SceneConfig, sceneType: 'damageZone' | 'fracture'): Promise<void> {
     // Show loading overlay
     const loadingOverlay = document.getElementById('loading-overlay');
     if (loadingOverlay) {
@@ -166,8 +179,7 @@ async function loadNewModel(modelPath, sceneConfig, sceneType) {
         canvas,
         model.model,
         camera,
-        renderManager.requestRenderIfNotRequested,
-        model.center
+        renderManager.requestRenderIfNotRequested
     );
 
     // Reset camera position using scene config
@@ -186,11 +198,11 @@ async function loadNewModel(modelPath, sceneConfig, sceneType) {
 
 /**
  * Handle model loading with file size check
- * @param {string} modelPath - Path to the model file
- * @param {string} filename - Filename for size lookup
- * @param {string} sceneType - Type of scene configuration to use
+ * @param modelPath - Path to the model file
+ * @param filename - Filename for size lookup
+ * @param sceneType - Type of scene configuration to use
  */
-function handleModelLoad(modelPath, filename, sceneType) {
+function handleModelLoad(modelPath: string, filename: string, sceneType: 'damageZone' | 'fracture'): void {
     const sceneConfig = SCENE_CONFIGS[sceneType]();
     const fileSizeMB = getModelSize(filename);
     if (fileSizeMB > FILE_SIZE_THRESHOLD_MB) {
@@ -202,16 +214,20 @@ function handleModelLoad(modelPath, filename, sceneType) {
 
 /**
  * Show confirmation dialog and handle model loading
- * @param {string} modelPath - Path to the model file
- * @param {number} fileSizeMB - File size in MB
- * @param {Object} sceneConfig - Scene configuration object
- * @param {string} sceneType - The type of scene being displayed
+ * @param modelPath - Path to the model file
+ * @param fileSizeMB - File size in MB
+ * @param sceneConfig - Scene configuration object
+ * @param sceneType - The type of scene being displayed
  */
-function showConfirmationDialog(modelPath, fileSizeMB, sceneConfig, sceneType) {
+function showConfirmationDialog(modelPath: string, fileSizeMB: number, sceneConfig: SceneConfig, sceneType: 'damageZone' | 'fracture'): void {
     const dialog = document.getElementById('confirmation-dialog');
     const confirmButton = document.getElementById('confirm-button');
     const cancelButton = document.getElementById('cancel-button');
     const dialogMessage = document.getElementById('dialog-message');
+
+    if (!dialog || !confirmButton || !cancelButton || !dialogMessage) {
+        return;
+    }
 
     // Update message with file size
     dialogMessage.textContent = `Ce modèle 3D est volumineux (${fileSizeMB} MB) et peut prendre du temps à charger. Souhaitez-vous continuer?`;
@@ -245,13 +261,17 @@ function showConfirmationDialog(modelPath, fileSizeMB, sceneConfig, sceneType) {
 
 /**
  * Show WIP dialog and handle model loading
- * @param {string} modelPath - Path to the model file
- * @param {Object} sceneConfig - Scene configuration object
- * @param {string} sceneType - The type of scene being displayed
+ * @param modelPath - Path to the model file
+ * @param sceneConfig - Scene configuration object
+ * @param sceneType - The type of scene being displayed
  */
-function showWIPDialog(modelPath, sceneConfig, sceneType) {
+function showWIPDialog(modelPath: string, sceneConfig: SceneConfig, sceneType: 'damageZone' | 'fracture'): void {
     const dialog = document.getElementById('wip-dialog');
     const okButton = document.getElementById('wip-ok-button');
+
+    if (!dialog || !okButton) {
+        return;
+    }
 
     // Show the dialog
     dialog.classList.add('show');
@@ -270,9 +290,13 @@ function showWIPDialog(modelPath, sceneConfig, sceneType) {
 /**
  * Initialize the Three.js application
  */
-async function init() {
+async function init(): Promise<void> {
     // Setup canvas and renderer
-    canvas = document.querySelector('#c');
+    const canvasElement = document.querySelector('#c') as HTMLCanvasElement | null;
+    if (!canvasElement) {
+        throw new Error('Canvas element not found');
+    }
+    canvas = canvasElement;
     renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
     document.body.appendChild(renderer.domElement);
 
@@ -305,7 +329,7 @@ async function init() {
     renderManager.requestRenderIfNotRequested();
 
     // Setup button event listeners using MODEL_CONFIG
-    Object.keys(MODEL_CONFIG).forEach(buttonId => {
+    (Object.keys(MODEL_CONFIG) as ModelConfigKey[]).forEach(buttonId => {
         const button = document.getElementById(buttonId);
         const modelInfo = MODEL_CONFIG[buttonId];
 
@@ -333,4 +357,3 @@ async function init() {
 
 // Start the application
 init();
-

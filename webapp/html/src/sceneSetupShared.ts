@@ -1,10 +1,23 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { GLTF } from 'three/addons/loaders/GLTFLoader.js';
+
+export interface ModelData {
+    model: THREE.Group;
+    center: THREE.Vector3;
+    boundingBox: THREE.Box3;
+    size: THREE.Vector3;
+    animations: THREE.AnimationClip[];
+}
+
+export interface SignedUrlResponse {
+    signedUrl: string;
+}
 
 /**
  * Create and configure the camera
  */
-export function createCamera() {
+export function createCamera(): THREE.PerspectiveCamera {
     const fov = 75;
     const aspect = 2;
     const near = 0.1;
@@ -17,10 +30,10 @@ export function createCamera() {
 
 /**
  * Create the scene with lighting
- * @param {boolean} includeDirectionalLight - Whether to include directional light
- * @param {number} brightness - Light brightness intensity (default: 2)
+ * @param includeDirectionalLight - Whether to include directional light
+ * @param brightness - Light brightness intensity (default: 2)
  */
-export function createScene(includeDirectionalLight = true, brightness = 2) {
+export function createScene(includeDirectionalLight: boolean = true, brightness: number = 2): THREE.Scene {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x625d5a);
 
@@ -39,39 +52,39 @@ export function createScene(includeDirectionalLight = true, brightness = 2) {
 
 /**
  * Get the signed url from AWS to download the file.
- * @param {string} objectKey -  The file name to get from AWS bucket
+ * @param objectKey - The file name to get from AWS bucket
  * @returns The signed url that must be used to download the file.
  */
-export async function getSignedUrl(objectKey) {
-  const apiEndpoint = "https://xhx5lqfvq1.execute-api.eu-central-1.amazonaws.com/prod/download-url";
+export async function getSignedUrl(objectKey: string): Promise<string> {
+    const apiEndpoint = "https://xhx5lqfvq1.execute-api.eu-central-1.amazonaws.com/prod/download-url";
 
-  const url = `${apiEndpoint}?key=${encodeURIComponent(objectKey)}`;
+    const url = `${apiEndpoint}?key=${encodeURIComponent(objectKey)}`;
 
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to get signed URL: ${response.status}`);
-  }
-  const data = await response.json();
-  return data.signedUrl;
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`Failed to get signed URL: ${response.status}`);
+    }
+    const data: SignedUrlResponse = await response.json();
+    return data.signedUrl;
 }
 
 /**
  * Load and display the glTF fracture model
- * @param {THREE.Scene} scene - The Three.js scene
- * @param {string} modelPath - Path to the glTF file
- * @returns {Promise<Object>} Model data including the loaded object and bounding box
+ * @param scene - The Three.js scene
+ * @param modelPath - Path to the glTF file
+ * @returns Model data including the loaded object and bounding box
  */
-export async function loadGLTFModel(scene, modelPath) {
+export async function loadGLTFModel(scene: THREE.Scene, modelPath: string): Promise<ModelData> {
     const signedUrl = await getSignedUrl(modelPath);
-    return new Promise(async (resolve, reject) => {
+    return new Promise<ModelData>((resolve, reject) => {
         const loader = new GLTFLoader();
-        console.log(`signed urL: ${signedUrl}`)
+        console.log(`signed urL: ${signedUrl}`);
         console.log(`Loading glTF model from: ${modelPath}`);
 
         loader.load(
             signedUrl,
             // onLoad callback
-            (gltf) => {
+            (gltf: GLTF) => {
                 console.log('glTF model loaded successfully');
 
                 // Hide loading overlay
@@ -84,15 +97,20 @@ export async function loadGLTFModel(scene, modelPath) {
                 scene.add(model);
 
                 // Apply flat shading to ignore imported normals
-                model.traverse((child) => {
-                    if (child.isMesh) {
+                model.traverse((child: any) => {
+                    if ((child as THREE.Mesh).isMesh) {
+                        const mesh = child as THREE.Mesh;
+                        const material = mesh.material as THREE.Material & { userData?: { isShared?: boolean } };
+
                         // Clone material if it's shared to avoid affecting other meshes
-                        if (child.material.userData.isShared) {
-                            child.material = child.material.clone();
+                        if (material.userData?.isShared) {
+                            mesh.material = material.clone();
                         }
-                        child.material.flatShading = true;
-                        child.material.side = THREE.DoubleSide; // Render both sides
-                        child.material.needsUpdate = true;
+
+                        const meshMaterial = mesh.material as THREE.MeshStandardMaterial;
+                        meshMaterial.flatShading = true;
+                        meshMaterial.side = THREE.DoubleSide; // Render both sides
+                        meshMaterial.needsUpdate = true;
                     }
                 });
 
@@ -113,7 +131,7 @@ export async function loadGLTFModel(scene, modelPath) {
                 });
             },
             // onProgress callback
-            (xhr) => {
+            (xhr: ProgressEvent) => {
                 const percentComplete = (xhr.loaded / xhr.total) * 100;
                 console.log(`Loading model: ${percentComplete.toFixed(2)}%`);
 
@@ -126,7 +144,7 @@ export async function loadGLTFModel(scene, modelPath) {
                 }
             },
             // onError callback
-            (error) => {
+            (error: unknown) => {
                 console.error('Error loading glTF model:', error);
                 reject(error);
             }

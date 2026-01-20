@@ -1,7 +1,19 @@
+import * as THREE from 'three';
+
+interface MousePosition {
+    x: number;
+    y: number;
+}
+
 /**
  * Setup mouse controls for rotating, panning, and zooming
  */
-export function setupMouseControls(canvas, object, camera, onInteraction) {
+export function setupMouseControls(
+    canvas: HTMLCanvasElement,
+    object: THREE.Object3D,
+    camera: THREE.PerspectiveCamera,
+    onInteraction: () => void
+): void {
     setupRotationControls(canvas, object, onInteraction);
     setupPanControls(canvas, camera, onInteraction);
     setupZoomControls(canvas, camera, onInteraction);
@@ -12,12 +24,16 @@ export function setupMouseControls(canvas, object, camera, onInteraction) {
  * Left button: Rotate X/Y axes
  * Shift + Left button: Rotate Z-axis
  */
-function setupRotationControls(canvas, object, onInteraction) {
+function setupRotationControls(
+    canvas: HTMLCanvasElement,
+    object: THREE.Object3D,
+    onInteraction: () => void
+): void {
     let isDragging = false;
-    let previousMousePosition = { x: 0, y: 0 };
+    let previousMousePosition: MousePosition = { x: 0, y: 0 };
     let isShiftPressed = false;
 
-    canvas.addEventListener('mousedown', (e) => {
+    canvas.addEventListener('mousedown', (e: MouseEvent) => {
         if (e.button === 0) { // Left mouse button
             isDragging = true;
             isShiftPressed = e.shiftKey;
@@ -25,7 +41,7 @@ function setupRotationControls(canvas, object, onInteraction) {
         }
     });
 
-    canvas.addEventListener('mousemove', (e) => {
+    canvas.addEventListener('mousemove', (e: MouseEvent) => {
         if (isDragging) {
             const deltaX = e.clientX - previousMousePosition.x;
             const deltaY = e.clientY - previousMousePosition.y;
@@ -44,7 +60,7 @@ function setupRotationControls(canvas, object, onInteraction) {
         }
     });
 
-    canvas.addEventListener('mouseup', (e) => {
+    canvas.addEventListener('mouseup', (e: MouseEvent) => {
         if (e.button === 0) {
             isDragging = false;
             isShiftPressed = false;
@@ -60,12 +76,16 @@ function setupRotationControls(canvas, object, onInteraction) {
 /**
  * Setup mouse drag controls for panning with right mouse button
  */
-function setupPanControls(canvas, camera, onInteraction) {
+function setupPanControls(
+    canvas: HTMLCanvasElement,
+    camera: THREE.PerspectiveCamera,
+    onInteraction: () => void
+): void {
     let isPanning = false;
-    let previousMousePosition = { x: 0, y: 0 };
+    let previousMousePosition: MousePosition = { x: 0, y: 0 };
     const PANSPEED = 10;
 
-    canvas.addEventListener('mousedown', (e) => {
+    canvas.addEventListener('mousedown', (e: MouseEvent) => {
         if (e.button === 2) { // Right mouse button
             isPanning = true;
             previousMousePosition = { x: e.clientX, y: e.clientY };
@@ -73,7 +93,7 @@ function setupPanControls(canvas, camera, onInteraction) {
         }
     });
 
-    canvas.addEventListener('mousemove', (e) => {
+    canvas.addEventListener('mousemove', (e: MouseEvent) => {
         if (isPanning) {
             const deltaX = PANSPEED * (e.clientX - previousMousePosition.x);
             const deltaY = PANSPEED * (e.clientY - previousMousePosition.y);
@@ -88,7 +108,7 @@ function setupPanControls(canvas, camera, onInteraction) {
         }
     });
 
-    canvas.addEventListener('mouseup', (e) => {
+    canvas.addEventListener('mouseup', (e: MouseEvent) => {
         if (e.button === 2) {
             isPanning = false;
         }
@@ -99,7 +119,7 @@ function setupPanControls(canvas, camera, onInteraction) {
     });
 
     // Prevent context menu on right click
-    canvas.addEventListener('contextmenu', (e) => {
+    canvas.addEventListener('contextmenu', (e: Event) => {
         e.preventDefault();
     });
 }
@@ -107,12 +127,16 @@ function setupPanControls(canvas, camera, onInteraction) {
 /**
  * Setup mouse wheel controls for zooming the camera
  */
-function setupZoomControls(canvas, camera, onInteraction) {
+function setupZoomControls(
+    canvas: HTMLCanvasElement,
+    camera: THREE.PerspectiveCamera,
+    onInteraction: () => void
+): void {
     const ZOOM_SPEED = 10;
     const MIN_ZOOM = 100;
     const MAX_ZOOM = 50000;
 
-    canvas.addEventListener('wheel', (e) => {
+    canvas.addEventListener('wheel', (e: WheelEvent) => {
         e.preventDefault();
         const delta = e.deltaY * ZOOM_SPEED;
         camera.position.z += delta;

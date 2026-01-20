@@ -1,12 +1,18 @@
+import * as THREE from 'three';
+
 /**
  * Manages the render loop and handles responsive resizing
  */
 export class RenderManager {
-    constructor(renderer, scene, camera) {
+    private renderer: THREE.WebGLRenderer;
+    private scene: THREE.Scene;
+    private camera: THREE.PerspectiveCamera;
+    private renderRequested: boolean = false;
+
+    constructor(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera) {
         this.renderer = renderer;
         this.scene = scene;
         this.camera = camera;
-        this.renderRequested = false;
 
         this.setupResizeHandler();
         this.render();
@@ -15,7 +21,7 @@ export class RenderManager {
     /**
      * Main render function
      */
-    render = () => {
+    render = (): void => {
         this.renderRequested = false;
 
         if (this.resizeRendererToDisplaySize()) {
@@ -30,7 +36,7 @@ export class RenderManager {
     /**
      * Request a render if one is not already requested
      */
-    requestRenderIfNotRequested = () => {
+    requestRenderIfNotRequested = (): void => {
         if (!this.renderRequested) {
             this.renderRequested = true;
             requestAnimationFrame(this.render);
@@ -39,16 +45,16 @@ export class RenderManager {
 
     /**
      * Update the scene reference
-     * @param {THREE.Scene} scene - The new scene to render
+     * @param scene - The new scene to render
      */
-    updateScene(scene) {
+    updateScene(scene: THREE.Scene): void {
         this.scene = scene;
     }
 
     /**
      * Resize the renderer to match the display size
      */
-    resizeRendererToDisplaySize() {
+    private resizeRendererToDisplaySize(): boolean {
         const canvas = this.renderer.domElement;
         const width = canvas.clientWidth;
         const height = canvas.clientHeight;
@@ -64,7 +70,7 @@ export class RenderManager {
     /**
      * Setup window resize handler
      */
-    setupResizeHandler() {
+    private setupResizeHandler(): void {
         window.addEventListener('resize', this.requestRenderIfNotRequested);
     }
 }
