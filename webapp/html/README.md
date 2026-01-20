@@ -1,15 +1,16 @@
-# FracSYS Webapp - TypeScript Version
+# FracSYS Webapp - TypeScript + Vite
 
-This webapp has been converted from JavaScript to TypeScript for improved type safety and developer experience.
+This webapp has been converted from JavaScript to TypeScript and uses Vite for fast development and optimized production builds.
 
 ## Project Structure
 
 ```
 webapp/html/
 ├── src/              # TypeScript source files (.ts)
-├── dist/             # Compiled JavaScript output (generated)
+├── dist/             # Production build output (generated)
 ├── lib/              # Third-party libraries (Three.js)
 ├── index.html        # Main HTML file
+├── vite.config.ts    # Vite configuration
 ├── tsconfig.json     # TypeScript configuration
 └── package.json      # NPM dependencies and scripts
 ```
@@ -29,30 +30,49 @@ npm install
 
 ## Development
 
-### Building the Project
+### Development Server
 
-Compile TypeScript to JavaScript:
+Start the Vite dev server with Hot Module Replacement (HMR):
+
+```bash
+npm run dev
+```
+
+This will:
+- Start a development server at http://localhost:3000
+- Automatically open your browser
+- Enable hot module replacement (instant updates without page reload)
+- Compile TypeScript on-the-fly
+
+### Production Build
+
+Build for production with optimizations:
 
 ```bash
 npm run build
 ```
 
-This will compile all `.ts` files from the `src/` directory to the `dist/` directory.
+This will:
+- Compile TypeScript to optimized JavaScript
+- Bundle and minify all code
+- Split Three.js into a separate chunk for better caching
+- Generate source maps for debugging
+- Output to the `dist/` directory
 
-### Watch Mode
+### Preview Production Build
 
-For development, use watch mode to automatically recompile on file changes:
+Preview the production build locally:
 
 ```bash
-npm run watch
+npm run preview
 ```
 
-### Cleaning Build Output
+### Type Checking
 
-Remove the compiled `dist/` directory:
+Run TypeScript type checking without building:
 
 ```bash
-npm run clean
+npm run typecheck
 ```
 
 ## File Descriptions
@@ -68,11 +88,24 @@ npm run clean
 
 ### Configuration Files
 
+- **vite.config.ts** - Vite build tool configuration
 - **tsconfig.json** - TypeScript compiler options
 - **package.json** - NPM package configuration and scripts
 - **.gitignore** - Git ignore patterns (node_modules, dist, logs)
 
-## TypeScript Benefits
+## Technology Stack
+
+### Vite
+
+Vite provides:
+
+- **Lightning Fast HMR**: Instant updates during development
+- **Optimized Builds**: Automatic code splitting, tree-shaking, and minification
+- **Built-in TypeScript**: No separate compilation step needed
+- **ES Modules**: Native browser module support
+- **Dev Server**: No need for separate HTTP server
+
+### TypeScript
 
 The conversion to TypeScript provides:
 
@@ -84,11 +117,20 @@ The conversion to TypeScript provides:
 
 ## Browser Compatibility
 
-The compiled JavaScript targets ES2020 and uses ES modules. Modern browsers (Chrome, Firefox, Safari, Edge) are required.
+The production build targets ES2020 and uses ES modules. Modern browsers (Chrome, Firefox, Safari, Edge) are required.
+
+## Build Output
+
+Production builds generate:
+- **index.html** - Entry HTML file with asset references
+- **assets/index-[hash].js** - Application code bundle
+- **assets/three-[hash].js** - Three.js library bundle (separate chunk for caching)
+- **assets/index-[hash].css** - Bundled and minified CSS
+- **assets/*.map** - Source maps for debugging
 
 ## Notes
 
-- The `index.html` file references the compiled JavaScript in `dist/main.js`
-- Source maps are generated for debugging TypeScript in the browser
+- Three.js is loaded from the local `lib/` directory (configured in vite.config.ts)
+- Source maps are generated for both development and production
 - The original JavaScript files have been removed from the repository
-- Three.js is still loaded from the local `lib/` directory using import maps
+- Vite handles all module resolution and bundling automatically

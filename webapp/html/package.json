@@ -4,13 +4,15 @@
   "description": "FracSYS 3D model viewer webapp",
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc --watch",
-    "clean": "rimraf dist"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/three": "^0.181.0",
+    "rimraf": "^6.0.1",
     "typescript": "^5.7.2",
-    "rimraf": "^6.0.1"
+    "vite": "^7.3.1"
   }
 }
