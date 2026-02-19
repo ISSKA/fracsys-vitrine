@@ -1,7 +1,7 @@
 services:
   web:
-    image: httpd:2.4
-    container_name: apache-web
+    image: httpd:2.4-alpine
+    container_name: viewer
     ports:
       - "8080:80"
     volumes:
