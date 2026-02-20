@@ -1,30 +1,36 @@
-# FracSYS Webapp - TypeScript + Vite
+# Mesh Viewer WebApp (TypeScript)
 
-This webapp has been converted from JavaScript to TypeScript and uses Vite for fast development and optimized production builds.
+A 3D mesh visualization web application built with TypeScript and VTK.js.
 
 ## Project Structure
 
 ```
-webapp/html/
-├── src/              # TypeScript source files (.ts)
-├── dist/             # Production build output (generated)
-├── lib/              # Third-party libraries (Three.js)
-├── index.html        # Main HTML file
-├── vite.config.ts    # Vite configuration
-├── tsconfig.json     # TypeScript configuration
-└── package.json      # NPM dependencies and scripts
+webapp/
+├── src/
+│   ├── app.ts                    # Main application entry point
+│   ├── fracture_zone_loader.ts  # Fracture zone file loading and layer management
+│   └── damage_zone_loader.ts    # Damage zone switching and loading
+├── types/
+│   └── vtk.d.ts           # TypeScript definitions for VTK.js
+├── dist/                   # Build output (generated)
+├── index.html             # HTML entry point
+├── styles.css             # Application styles
+├── package.json           # Dependencies and scripts
+├── tsconfig.json          # TypeScript configuration
+└── vite.config.ts         # Vite build configuration
 ```
-
-## Prerequisites
-
-- Node.js (v16 or higher)
-- npm
 
 ## Setup
 
-Install dependencies:
+### Prerequisites
+
+- Node.js (v18 or higher recommended)
+- npm or yarn
+
+### Installation
 
 ```bash
+cd webapp
 npm install
 ```
 
@@ -32,32 +38,31 @@ npm install
 
 ### Development Server
 
-Start the Vite dev server with Hot Module Replacement (HMR):
+Run the development server with hot module replacement:
 
 ```bash
 npm run dev
 ```
 
-This will:
-- Start a development server at http://localhost:3000
-- Automatically open your browser
-- Enable hot module replacement (instant updates without page reload)
-- Compile TypeScript on-the-fly
+The app will be available at `http://localhost:3000`
 
-### Production Build
+### Type Checking
 
-Build for production with optimizations:
+Run TypeScript type checking without emitting files:
+
+```bash
+npm run type-check
+```
+
+## Production Build
+
+Build the application for production:
 
 ```bash
 npm run build
 ```
 
-This will:
-- Compile TypeScript to optimized JavaScript
-- Bundle and minify all code
-- Split Three.js into a separate chunk for better caching
-- Generate source maps for debugging
-- Output to the `dist/` directory
+The built files will be in the `dist/` directory.
 
 ### Preview Production Build
 
@@ -67,81 +72,61 @@ Preview the production build locally:
 npm run preview
 ```
 
-### Type Checking
+## Docker Deployment
 
-Run TypeScript type checking without building:
+The application is configured to run in a Docker container using Apache httpd.
+
+### Build and Run
 
 ```bash
-npm run typecheck
+# Build the TypeScript app
+cd webapp
+npm install
+npm run build
+
+# Start Docker container (from project root)
+cd ..
+docker-compose up -d
 ```
 
-## File Descriptions
+The application will be available at `http://localhost:8080`
 
-### TypeScript Source Files
+### Docker Configuration
 
-- **main.ts** - Main application entry point, handles initialization and model loading
-- **renderManager.ts** - Manages the Three.js render loop and responsive resizing
-- **mouseControls.ts** - Mouse interaction controls (rotation, panning, zooming)
-- **sceneSetupShared.ts** - Shared scene setup functions (camera, scene, model loading)
-- **sceneSetupDamageZone.ts** - Configuration for damage zone models
-- **sceneSetupFracture.ts** - Configuration for fracture models
+- The Docker container serves files from `webapp/dist/`
+- Port mapping: `8080:80`
+- Container name: `meshing-viewer`
 
-### Configuration Files
+## Features
 
-- **vite.config.ts** - Vite build tool configuration
-- **tsconfig.json** - TypeScript compiler options
-- **package.json** - NPM package configuration and scripts
-- **.gitignore** - Git ignore patterns (node_modules, dist, logs)
+- 3D mesh visualization using VTK.js
+- Multi-layer support (mesh and markers)
+- Interactive controls (rotate, pan, zoom)
+- Cell picking and metadata display
+- Cloud download from AWS S3
+- Local file upload (.vtp files)
+- Wireframe/Surface rendering modes
 
 ## Technology Stack
 
-### Vite
+- **TypeScript 5.3+** - Type-safe JavaScript
+- **VTK.js 30+** - 3D visualization library
+- **Vite 5** - Fast build tool and dev server
+- **Docker** - Containerized deployment
 
-Vite provides:
+## Migration from JavaScript
 
-- **Lightning Fast HMR**: Instant updates during development
-- **Optimized Builds**: Automatic code splitting, tree-shaking, and minification
-- **Built-in TypeScript**: No separate compilation step needed
-- **ES Modules**: Native browser module support
-- **Dev Server**: No need for separate HTTP server
+This project was migrated from JavaScript to TypeScript with:
+- Strict type checking enabled
+- Proper type definitions for VTK.js modules
+- Modern ES modules with Vite bundling
+- Type-safe interfaces for all data structures
 
-### TypeScript
+## Scripts Reference
 
-The conversion to TypeScript provides:
-
-- **Type Safety**: Catch errors at compile-time instead of runtime
-- **Better IDE Support**: Improved autocomplete, refactoring, and navigation
-- **Documentation**: Types serve as inline documentation
-- **Maintainability**: Easier to understand and modify code
-- **Source Maps**: Debug TypeScript directly in the browser
-
-## Browser Compatibility
-
-The production build targets ES2020 and uses ES modules. Modern browsers (Chrome, Firefox, Safari, Edge) are required.
-
-## Build Output
-
-Production builds generate:
-- **index.html** - Entry HTML file with asset references
-- **assets/index-[hash].js** - Application code bundle
-- **assets/three-[hash].js** - Three.js library bundle (separate chunk for caching)
-- **assets/index-[hash].css** - Bundled and minified CSS
-- **assets/*.map** - Source maps for debugging
-
-## Deployment
-
-To deploy the webapp to Apache server:
-
-```bash
-npm run build
-# Then copy the contents of dist/ to /var/www/html/
-```
-
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions, troubleshooting, and common issues.
-
-## Notes
-
-- Three.js is loaded from the local `lib/` directory (configured in vite.config.ts)
-- Source maps are generated for both development and production
-- The original JavaScript files have been removed from the repository
-- Vite handles all module resolution and bundling automatically
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm run preview` | Preview production build |
+| `npm run type-check` | Check types without emitting |

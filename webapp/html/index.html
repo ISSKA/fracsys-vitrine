@@ -1,58 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FracSYS Vitrine</title>
-    <link rel="stylesheet" href="main.css">
-  </head>
-  <body>
-    <div id="loading-overlay">
-      <div id="loading-text">Chargement du modèle 3D...</div>
-      <div id="progress-bar-container">
-        <div id="progress-bar">
-          <span id="progress-percentage">0%</span>
+    <title>Mesh Shortest Path Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="controls">
+        <h3>Mesh Viewer</h3>
+        <button onclick="showFractureZone()">Fracture Zone</button><br>
+        <button onclick="showDamageZone()" disabled>Damage Zone</button><br>
+
+        <div id="layerControls" style="margin-top: 15px; margin-bottom: 15px; display: none;">
+            <h4>Layers</h4>
+            <div id="layerCheckboxes"></div>
         </div>
-      </div>
+        <button onclick="resetCamera()">Reset camera</button>
+        <button onclick="toggleWireframe()">Toggle wireframe</button>
     </div>
-    <canvas id="c"></canvas>
-    <div id="colorbar-overlay" class="hidden">
-      <img src="" alt="Flow Colorbar" id="colorbar-flow">
-      <img src="" alt="Head Colorbar" id="colorbar-head">
+    <div id="info">
+        Controls: Rotate (left mouse button), Pan (right mouse button), Roll (Shift + left mouse buttin), Zoom (mouse wheel)
     </div>
-    <div id="help-panel">
-      <h3>Contrôles</h3>
-      <ul>
-        <li><strong>Bouton gauche :</strong> Rotation de la vue</li>
-        <li><strong>Shift + Bouton gauche :</strong> Rotation axe Z</li>
-        <li><strong>Bouton droit :</strong> Déplacement de la vue</li>
-        <li><strong>Molette :</strong> Zoom avant/arrière</li>
-      </ul>
-    </div>
-    <div id="button-panel">
-      <button class="model-button" id="damage-zone-button">Damage Zone</button>
-      <button class="model-button" id="damage-zone-optimized-button">Optimized Damage Zone</button>
-      <button class="model-button" id="fracture-zone-button">Fracture Zone</button>
-    </div>
-    <div id="confirmation-dialog">
-      <div class="dialog-content">
-        <h2>Attention</h2>
-        <p id="dialog-message">Ce modèle 3D est volumineux et peut prendre du temps à charger. Souhaitez-vous continuer?</p>
-        <div class="dialog-buttons">
-          <button class="dialog-button" id="confirm-button">Confirmer</button>
-          <button class="dialog-button" id="cancel-button">Annuler</button>
-        </div>
-      </div>
-    </div>
-    <div id="wip-dialog">
-      <div class="dialog-content">
-        <h2>Travail en cours</h2>
-        <p id="wip-message">Ce modèle est en cours de développement et pourrait ne pas s'afficher correctement.</p>
-        <div class="dialog-buttons">
-          <button class="dialog-button" id="wip-ok-button">OK</button>
-        </div>
-      </div>
-    </div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+    <div id="metadata"></div>
+    <div id="container"></div>
+
+    <script type="module" src="/src/app.ts"></script>
+</body>
 </html>
