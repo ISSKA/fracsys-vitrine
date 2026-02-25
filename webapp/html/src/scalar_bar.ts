@@ -5,6 +5,7 @@
 export interface ScalarBarConfig {
   name: string;           // Label for the axis (e.g., "H (m)", "Q", "Type")
   rightPx?: number;       // Distance from the right edge of the viewport in pixels
+  scientificNotation?: boolean; // Use scientific notation for tick labels (e.g. for very small values)
   position: {
     x: number;            // X position (0-1, normalized viewport coordinates)
     y: number;            // Y position (0-1, normalized viewport coordinates)
@@ -76,7 +77,9 @@ export function createScalarBar(
       const label = document.createElement('div');
       label.className = 'scalar-bar-tick-label';
       label.style.top = `${t * 100}%`;
-      label.textContent = value.toFixed(2);
+      label.textContent = currentConfig.scientificNotation
+        ? value.toExponential(2)
+        : value.toFixed(2);
       ticksDiv.appendChild(label);
     }
     barContainer.appendChild(ticksDiv);
@@ -124,6 +127,7 @@ export const DEFAULT_SCALAR_BAR_CONFIG: Omit<ScalarBarConfig, 'name'> = {
  */
 export const SECONDARY_SCALAR_BAR_CONFIG: Omit<ScalarBarConfig, 'name'> = {
   rightPx: 110,
+  scientificNotation: true,
   position: { x: 0.77, y: 0.15 },
   size: { width: 0.08, height: 0.7 },
   textStyle: {
