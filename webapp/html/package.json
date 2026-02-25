@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:preview": "tsc && vite build --base=/preview/",
     "preview": "vite preview",
     "type-check": "tsc --noEmit"
   },
