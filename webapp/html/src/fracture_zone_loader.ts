@@ -118,7 +118,7 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     mapper.setScalarVisibility(false);
   }
 
-  function applyColorMapping(layer: Layer, arrayName: string = 'H'): void {
+  function applyColorMapping(layer: Layer, arrayName: string = 'H', logarithmic: boolean = false): void {
     const { mapper, source } = layer;
     if (!source) return;
 
@@ -150,12 +150,18 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     }
 
     // Create color transfer function (blue -> cyan -> green -> yellow -> red)
+    const logMin = logarithmic ? Math.log10(min) : 0;
+    const logMax = logarithmic ? Math.log10(max) : 0;
+    const interp = (t: number) => logarithmic
+      ? Math.pow(10, logMin + t * (logMax - logMin))
+      : min + t * (max - min);
+
     const lookupTable = vtkColorTransferFunction.newInstance();
-    lookupTable.addRGBPoint(min, 0.0, 0.0, 1.0);                       // Blue for minimum
-    lookupTable.addRGBPoint(min + (max - min) * 0.25, 0.0, 1.0, 1.0);  // Cyan
-    lookupTable.addRGBPoint(min + (max - min) * 0.5,  0.0, 1.0, 0.0);  // Green for middle
-    lookupTable.addRGBPoint(min + (max - min) * 0.75, 1.0, 1.0, 0.0);  // Yellow
-    lookupTable.addRGBPoint(max, 1.0, 0.0, 0.0);                       // Red for maximum
+    lookupTable.addRGBPoint(interp(0.0),  0.0, 0.0, 1.0);  // Blue for minimum
+    lookupTable.addRGBPoint(interp(0.25), 0.0, 1.0, 1.0);  // Cyan
+    lookupTable.addRGBPoint(interp(0.5),  0.0, 1.0, 0.0);  // Green for middle
+    lookupTable.addRGBPoint(interp(0.75), 1.0, 1.0, 0.0);  // Yellow
+    lookupTable.addRGBPoint(interp(1.0),  1.0, 0.0, 0.0);  // Red for maximum
 
     // Apply color mapping to mapper
     mapper.setLookupTable(lookupTable);
@@ -196,7 +202,7 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     if (layerId === 'sat_glyphs' || layerId === 'unsat_glyphs') {
       applyColorMapping(layer, 'H');
     } else if (layerId === 'G_sat_flow') {
-      applyColorMapping(layer, 'Q');
+      applyColorMapping(layer, 'Q', true);
     }
 
     // Apply flat colour from FieldData for the source glyph sphere
