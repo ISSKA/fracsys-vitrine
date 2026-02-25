@@ -85,13 +85,38 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     const { actor, mapper, source } = layer;
     if (!source) return;
 
-    const colorArray = source.getFieldData().getArrayByName('display_color_rgb');
-    if (!colorArray) return;
+    // 1. FieldData — single flat color stored at the dataset level
+    const fieldColor = source.getFieldData().getArrayByName('display_color_rgb');
+    if (fieldColor) {
+      const data = fieldColor.getData();
+      if (data.length >= 3) {
+        actor.getProperty().setColor(data[0] / 255, data[1] / 255, data[2] / 255);
+        mapper.setScalarVisibility(false);
+        return;
+      }
+    }
 
-    const data = colorArray.getData();
-    if (data.length < 3) return;
+    // 2. CellData — per-cell RGB (line datasets)
+    const cellColor = source.getCellData().getArrayByName('display_color_rgb');
+    if (cellColor) {
+      mapper.setColorModeToDirectScalars();
+      mapper.setScalarModeToUseCellFieldData();
+      mapper.setColorByArrayName('display_color_rgb');
+      mapper.setScalarVisibility(true);
+      return;
+    }
 
-    actor.getProperty().setColor(data[0] / 255, data[1] / 255, data[2] / 255);
+    // 3. PointData — per-point RGB (glyph / point datasets)
+    const pointColor = source.getPointData().getArrayByName('display_color_rgb');
+    if (pointColor) {
+      mapper.setColorModeToDirectScalars();
+      mapper.setScalarModeToUsePointFieldData();
+      mapper.setColorByArrayName('display_color_rgb');
+      mapper.setScalarVisibility(true);
+      return;
+    }
+
+    // No color array found — suppress VTK's auto scalar mapping
     mapper.setScalarVisibility(false);
   }
 
@@ -99,12 +124,16 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     const { mapper, source } = layer;
     if (!source) return;
 
-    // Get the data array to determine range
-    const pointData = source.getPointData();
-    const dataArray = pointData.getArrayByName(arrayName);
+    // Try PointData first, fall back to CellData
+    let dataArray = source.getPointData().getArrayByName(arrayName);
+    let useCellData = false;
+    if (!dataArray) {
+      dataArray = source.getCellData().getArrayByName(arrayName);
+      useCellData = true;
+    }
 
     if (!dataArray) {
-      console.warn(`Array '${arrayName}' not found for color mapping`);
+      console.warn(`Array '${arrayName}' not found in PointData or CellData`);
       return;
     }
 
@@ -124,24 +153,28 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
 
     // Create color transfer function (blue -> cyan -> green -> yellow -> red)
     const lookupTable = vtkColorTransferFunction.newInstance();
-    lookupTable.addRGBPoint(min, 0.0, 0.0, 1.0);                    // Blue for minimum
-    lookupTable.addRGBPoint(min + (max - min) * 0.25, 0.0, 1.0, 1.0); // Cyan
-    lookupTable.addRGBPoint(min + (max - min) * 0.5, 0.0, 1.0, 0.0);  // Green for middle
-    lookupTable.addRGBPoint(min + (max - min) * 0.75, 1.0, 1.0, 0.0); // Yellow
-    lookupTable.addRGBPoint(max, 1.0, 0.0, 0.0);                    // Red for maximum
+    lookupTable.addRGBPoint(min, 0.0, 0.0, 1.0);                       // Blue for minimum
+    lookupTable.addRGBPoint(min + (max - min) * 0.25, 0.0, 1.0, 1.0);  // Cyan
+    lookupTable.addRGBPoint(min + (max - min) * 0.5,  0.0, 1.0, 0.0);  // Green for middle
+    lookupTable.addRGBPoint(min + (max - min) * 0.75, 1.0, 1.0, 0.0);  // Yellow
+    lookupTable.addRGBPoint(max, 1.0, 0.0, 0.0);                       // Red for maximum
 
     // Apply color mapping to mapper
     mapper.setLookupTable(lookupTable);
     mapper.setScalarRange(min, max);
     mapper.setScalarVisibility(true);
-    mapper.setScalarModeToUsePointFieldData();
+    if (useCellData) {
+      mapper.setScalarModeToUseCellFieldData();
+    } else {
+      mapper.setScalarModeToUsePointFieldData();
+    }
     mapper.setColorByArrayName(arrayName);
 
     // Create/update scalar bar with appropriate label
     const label = "Hydraulic Head (m)"; //arrayName === 'H' ? 'H (m)' : arrayName;
     updateScalarBar(lookupTable, label);
 
-    console.log(`Applied color mapping for '${arrayName}' with range [${min.toFixed(2)}, ${max.toFixed(2)}]`);
+    console.log(`Applied color mapping for '${arrayName}' (${useCellData ? 'CellData' : 'PointData'}) with range [${min.toFixed(2)}, ${max.toFixed(2)}]`);
   }
 
   function loadLayerData(layerId: string, fileContents: ArrayBuffer): Layer {
@@ -160,9 +193,11 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     layer.mapper.setInputData(source);
     layer.mapper.modified();
 
-    // Apply color mapping for glyph layers based on H values
+    // Apply color mapping based on scalar data
     if (layerId === 'sat_glyphs' || layerId === 'unsat_glyphs') {
       applyColorMapping(layer, 'H');
+    } else if (layerId === 'G_sat_flow') {
+      applyColorMapping(layer, 'Q');
     }
 
     // Apply flat colour from FieldData for the source glyph sphere
