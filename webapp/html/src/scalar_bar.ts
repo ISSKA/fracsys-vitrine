@@ -4,6 +4,7 @@
 
 export interface ScalarBarConfig {
   name: string;           // Label for the axis (e.g., "H (m)", "Q", "Type")
+  rightPx?: number;       // Distance from the right edge of the viewport in pixels
   position: {
     x: number;            // X position (0-1, normalized viewport coordinates)
     y: number;            // Y position (0-1, normalized viewport coordinates)
@@ -44,6 +45,9 @@ export function createScalarBar(
 ): ScalarBarManager {
   const panel = document.createElement('div');
   panel.className = 'scalar-bar-panel';
+  if (config.rightPx !== undefined) {
+    panel.style.right = `${config.rightPx}px`;
+  }
   document.body.appendChild(panel);
 
   function render(currentLut: any, currentConfig: ScalarBarConfig): void {
@@ -100,10 +104,27 @@ export function createScalarBar(
 }
 
 /**
- * Default configuration for scalar bars
+ * Default configuration for the primary scalar bar (rightmost).
  */
 export const DEFAULT_SCALAR_BAR_CONFIG: Omit<ScalarBarConfig, 'name'> = {
-  position: { x: 0.88, y: 0.15 },  // Right side, lower position
+  rightPx: 20,
+  position: { x: 0.88, y: 0.15 },
+  size: { width: 0.08, height: 0.7 },
+  textStyle: {
+    axisLabelFontSize: 7,
+    tickLabelFontSize: 6,
+    fontColor: 'black',
+    fontFamily: 'Arial'
+  }
+};
+
+/**
+ * Configuration for a secondary scalar bar, positioned to the left of the primary.
+ * Offset = primary rightPx (20) + panel width (80) + gap (10) = 110px.
+ */
+export const SECONDARY_SCALAR_BAR_CONFIG: Omit<ScalarBarConfig, 'name'> = {
+  rightPx: 110,
+  position: { x: 0.77, y: 0.15 },
   size: { width: 0.08, height: 0.7 },
   textStyle: {
     axisLabelFontSize: 7,

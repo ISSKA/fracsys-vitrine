@@ -2,7 +2,7 @@ import vtkXMLPolyDataReader from '@kitware/vtk.js/IO/XML/XMLPolyDataReader';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
-import { createScalarBar, DEFAULT_SCALAR_BAR_CONFIG, type ScalarBarManager } from './scalar_bar.js';
+import { createScalarBar, DEFAULT_SCALAR_BAR_CONFIG, SECONDARY_SCALAR_BAR_CONFIG, type ScalarBarManager } from './scalar_bar.js';
 import { LAYERS, type LayerConfig } from './layers.config.js';
 
 // ============================================================================
@@ -51,7 +51,8 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
   // Store layer data: { id -> { actor, mapper, source, visible } }
   const layers: Layers = {};
   let isInitialized = false;
-  let scalarBarManager: ScalarBarManager | null = null;
+  let scalarBarManagerH: ScalarBarManager | null = null;
+  let scalarBarManagerQ: ScalarBarManager | null = null;
 
   function createLayer(layerId: string): Layer {
     const mapper = vtkMapper.newInstance();
@@ -68,17 +69,14 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     return layers[layerId];
   }
 
-  function updateScalarBar(lut: any, name: string): void {
-    // Remove existing scalar bar if present
-    if (scalarBarManager) {
-      scalarBarManager.remove(renderer);
+  function updateScalarBar(lut: any, name: string, secondary: boolean = false): void {
+    if (secondary) {
+      scalarBarManagerQ?.remove(renderer);
+      scalarBarManagerQ = createScalarBar(renderer, lut, { name, ...SECONDARY_SCALAR_BAR_CONFIG });
+    } else {
+      scalarBarManagerH?.remove(renderer);
+      scalarBarManagerH = createScalarBar(renderer, lut, { name, ...DEFAULT_SCALAR_BAR_CONFIG });
     }
-
-    // Create new scalar bar with configuration
-    scalarBarManager = createScalarBar(renderer, lut, {
-      name,
-      ...DEFAULT_SCALAR_BAR_CONFIG
-    });
   }
 
   function applyDisplayColorFromFieldData(layer: Layer): void {
@@ -170,9 +168,10 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     }
     mapper.setColorByArrayName(arrayName);
 
-    // Create/update scalar bar with appropriate label
-    const label = "Hydraulic Head (m)"; //arrayName === 'H' ? 'H (m)' : arrayName;
-    updateScalarBar(lookupTable, label);
+    // Create/update scalar bar
+    const isSecondary = useCellData;
+    const label = arrayName === 'H' ? 'Hydraulic Head (m)' : `${arrayName} (m³/s)`;
+    updateScalarBar(lookupTable, label, isSecondary);
 
     console.log(`Applied color mapping for '${arrayName}' (${useCellData ? 'CellData' : 'PointData'}) with range [${min.toFixed(2)}, ${max.toFixed(2)}]`);
   }
