@@ -262,6 +262,6 @@ window.toggleWireframe = function(): void {
 // ============================================================================
 
 // Initialize damage zone loader
-initializeDamageZoneLoader();
+initializeDamageZoneLoader({ renderer, renderWindow, fileLoader });
 
 // File input listener is set up in fracture_zone_loader.ts
