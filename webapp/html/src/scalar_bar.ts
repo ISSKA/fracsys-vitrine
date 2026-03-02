@@ -7,6 +7,7 @@ export interface ScalarBarConfig {
   rightPx?: number;       // Distance from the right edge of the viewport in pixels
   scientificNotation?: boolean; // Use scientific notation for tick labels (e.g. for very small values)
   logarithmic?: boolean;        // Space ticks and gradient on a log10 scale
+  gradientCss?: string;         // Override the CSS background of the gradient strip
   position: {
     x: number;            // X position (0-1, normalized viewport coordinates)
     y: number;            // Y position (0-1, normalized viewport coordinates)
@@ -68,6 +69,9 @@ export function createScalarBar(
 
     const gradient = document.createElement('div');
     gradient.className = 'scalar-bar-gradient';
+    if (currentConfig.gradientCss) {
+      gradient.style.background = currentConfig.gradientCss;
+    }
     barContainer.appendChild(gradient);
 
     const ticksDiv = document.createElement('div');

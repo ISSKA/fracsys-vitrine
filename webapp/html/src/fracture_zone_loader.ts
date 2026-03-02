@@ -37,6 +37,7 @@ export interface FileLoaderAPI {
   getLayerVisibility: (layerId: string) => boolean;
   getAllSources: () => any[];
   isInitialized: () => boolean;
+  setScalarBarsVisible: (visible: boolean) => void;
 }
 
 // ============================================================================
@@ -341,6 +342,11 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
   // Initialize picker
   picker.initializePickList();
 
+  function setScalarBarsVisible(visible: boolean): void {
+    scalarBarManagerH?.setVisibility(visible);
+    scalarBarManagerQ?.setVisibility(visible);
+  }
+
   return {
     layers,
     LAYERS,
@@ -349,6 +355,7 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     setLayerVisibility,
     getLayerVisibility,
     getAllSources,
-    isInitialized: () => isInitialized
+    isInitialized: () => isInitialized,
+    setScalarBarsVisible
   };
 }
