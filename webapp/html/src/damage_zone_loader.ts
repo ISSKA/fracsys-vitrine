@@ -134,6 +134,34 @@ function hideProgress(): void {
 // Color Mapping
 // ============================================================================
 
+/** A color stop in 0-255 RGB. t=0 maps to the data minimum, t=1 to the maximum. */
+interface ColorStop { t: number; r: number; g: number; b: number; }
+
+/**
+ * Populates a VTK color transfer function and returns a matching CSS gradient
+ * string, both derived from the same 0-255 color stop definitions.
+ */
+function buildColorRamp(
+  lut: any,
+  min: number,
+  max: number,
+  stops: ColorStop[]
+): string {
+  for (const s of stops) {
+    const value = min + s.t * (max - min);
+    lut.addRGBPoint(value, s.r / 255, s.g / 255, s.b / 255);
+  }
+  // CSS gradient: top = last stop (max), bottom = first stop (min)
+  const cssStops = [...stops].reverse().map(s => `rgb(${s.r},${s.g},${s.b})`).join(', ');
+  return `linear-gradient(to bottom, ${cssStops})`;
+}
+
+// Edit the stops here to change the color ramp for the damage zone:
+const SIZE_COLOR_STOPS: ColorStop[] = [
+  { t: 0.0, r:   0, g:   0, b: 100 },  // Dark blue  — minimum size
+  { t: 1.0, r: 255, g: 255, b: 255 },  // White      — maximum size
+];
+
 function applyColorMappingBySize(source: any, mapper: any): void {
   const dataArray = source.getPointData().getArrayByName('size');
   if (!dataArray) {
@@ -145,8 +173,7 @@ function applyColorMappingBySize(source: any, mapper: any): void {
   const effectiveMax = min === max ? min + 1 : max;
 
   const lut = vtkColorTransferFunction.newInstance();
-  lut.addRGBPoint(min,         0.0, 0.0, 0.0);  // Black for minimum
-  lut.addRGBPoint(effectiveMax, 1.0, 1.0, 1.0);  // White for maximum
+  const gradientCss = buildColorRamp(lut, min, effectiveMax, SIZE_COLOR_STOPS);
 
   mapper.setLookupTable(lut);
   mapper.setScalarRange(min, effectiveMax);
@@ -158,7 +185,7 @@ function applyColorMappingBySize(source: any, mapper: any): void {
   sizeScalarBarManager = createScalarBar(null, lut, {
     name: 'Size [m]',
     ...DEFAULT_SCALAR_BAR_CONFIG,
-    gradientCss: 'linear-gradient(to bottom, rgb(255,255,255), rgb(0,0,0))'
+    gradientCss
   });
 }
 
