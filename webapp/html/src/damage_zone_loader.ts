@@ -98,6 +98,7 @@ export async function showDamageZone(): Promise<void> {
       alert(`Failed to load damage zone: ${errorMessage}`);
       return;
     }
+    setProgressLabel('Rendering\u2026');
   } else if (damageZoneActor) {
     damageZoneActor.setVisibility(true);
     sizeScalarBarManager?.setVisibility(true);
@@ -105,6 +106,7 @@ export async function showDamageZone(): Promise<void> {
 
   deps.renderer.resetCamera();
   deps.renderWindow.render();
+  hideProgress();
 }
 
 // ============================================================================
@@ -114,7 +116,13 @@ export async function showDamageZone(): Promise<void> {
 function showProgress(): void {
   const el = document.getElementById('download-progress');
   if (el) el.style.display = 'block';
+  setProgressLabel('Loading Damage Zone\u2026');
   setProgress(0);
+}
+
+function setProgressLabel(text: string): void {
+  const el = document.getElementById('download-progress-label');
+  if (el) el.textContent = text;
 }
 
 function setProgress(fraction: number): void {
@@ -128,6 +136,13 @@ function setProgress(fraction: number): void {
 function hideProgress(): void {
   const el = document.getElementById('download-progress');
   if (el) el.style.display = 'none';
+  const spinner = document.getElementById('download-progress-spinner');
+  if (spinner) spinner.classList.remove('active');
+}
+
+function showSpinner(): void {
+  const spinner = document.getElementById('download-progress-spinner');
+  if (spinner) spinner.classList.add('active');
 }
 
 // ============================================================================
@@ -238,6 +253,11 @@ async function loadDamageZoneFromCloud(): Promise<void> {
     }
 
     // Step 3: Parse and create actor
+    // Show spinner and yield one frame so the browser paints before the
+    // synchronous parse blocks the main thread.
+    setProgressLabel('Parsing\u2026');
+    showSpinner();
+    await new Promise(resolve => requestAnimationFrame(resolve));
     const vtkreader = vtkXMLPolyDataReader.newInstance();
     vtkreader.parseAsArrayBuffer(buffer.buffer);
     const source = vtkreader.getOutputData(0);
@@ -251,8 +271,9 @@ async function loadDamageZoneFromCloud(): Promise<void> {
     damageZoneActor.setMapper(mapper);
 
     deps.renderer.addActor(damageZoneActor);
-  } finally {
+  } catch (error) {
     hideProgress();
+    throw error;
   }
 }
 
