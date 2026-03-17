@@ -12,4 +12,5 @@ export const LAYERS: readonly LayerConfig[] = [
   { id: 'isoline_segments',  filename: 'isoline_segments.vtp',    label: 'Hydraulic gradient in the fractures',defaultVisible: true },
   { id: 'all_paths',         filename: 'all_paths.vtp',           label: 'Hydraulic head',     defaultVisible: true },
   { id: 'source_glyph',      filename: 'target_node_sphere.vtp',  label: 'Outlet',    defaultVisible: true },
+  { id: 'recharge_nodes',      filename: 'recharge_nodes.vtp',  label: 'Recharge Points',    defaultVisible: true },
 ] as const;

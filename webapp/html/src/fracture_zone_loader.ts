@@ -211,6 +211,10 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
       applyDisplayColorFromFieldData(layer);
     }
 
+    if (layerId === 'recharge_nodes') {
+      applyDisplayColorFromFieldData(layer);
+    }
+
     // Add actor to renderer if not already added
     if (!renderer.getActors().includes(layer.actor)) {
       renderer.addActor(layer.actor);
