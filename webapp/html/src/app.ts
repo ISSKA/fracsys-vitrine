@@ -169,6 +169,13 @@ function createLayerCheckboxes(): void {
 // Initialize layer checkboxes
 createLayerCheckboxes();
 
+const layerControlsToggle = document.getElementById('layerControlsToggle');
+const layerCheckboxes = document.getElementById('layerCheckboxes');
+layerControlsToggle?.addEventListener('click', () => {
+  layerControlsToggle.classList.toggle('collapsed');
+  layerCheckboxes?.classList.toggle('collapsed');
+});
+
 // Expose downloadFromCloud to window for HTML button onclick
 window.downloadFromCloud = fileLoader.downloadAllLayersFromCloud;
 

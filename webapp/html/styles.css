@@ -141,6 +141,26 @@ input[type="file"] {
     to { transform: rotate(360deg); }
 }
 
+.collapsible-toggle {
+  cursor: pointer;
+  user-select: none;
+  margin: 0 0 8px 0;
+}
+
+.collapsible-toggle::before {
+  content: '▾ ';
+  font-size: 16px;
+}
+
+.collapsible-toggle.collapsed::before {
+  content: '▸ ';
+  font-size: 16px;
+}
+
+#layerCheckboxes.collapsed {
+  display: none;
+}
+
 .scalar-bar-panel {
   position: absolute;
   right: 20px;
