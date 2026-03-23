@@ -3,6 +3,7 @@ import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import { createScalarBar, DEFAULT_SCALAR_BAR_CONFIG, SECONDARY_SCALAR_BAR_CONFIG, type ScalarBarManager } from './scalar_bar.js';
+import { type ColorMap, COLOR_MAPS } from './color_maps.js';
 import { LAYERS, type LayerConfig } from './layers.config.js';
 
 // ============================================================================
@@ -10,6 +11,8 @@ import { LAYERS, type LayerConfig } from './layers.config.js';
 // ============================================================================
 
 export type { LayerConfig };
+export type { ColorMap, ColorMapStop } from './color_maps.js';
+export { COLOR_MAPS } from './color_maps.js';
 
 export interface Layer {
   actor: any;
@@ -119,7 +122,7 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     mapper.setScalarVisibility(false);
   }
 
-  function applyColorMapping(layer: Layer, arrayName: string = 'H', logarithmic: boolean = false): void {
+  function applyColorMapping(layer: Layer, arrayName: string = 'H', logarithmic: boolean = false, colorMap: ColorMap = COLOR_MAPS.rainbow): void {
     const { mapper, source } = layer;
     if (!source) return;
 
@@ -158,11 +161,9 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
       : min + t * (max - min);
 
     const lookupTable = vtkColorTransferFunction.newInstance();
-    lookupTable.addRGBPoint(interp(0.0),  0.0, 0.0, 1.0);  // Blue for minimum
-    lookupTable.addRGBPoint(interp(0.25), 0.0, 1.0, 1.0);  // Cyan
-    lookupTable.addRGBPoint(interp(0.5),  0.0, 1.0, 0.0);  // Green for middle
-    lookupTable.addRGBPoint(interp(0.75), 1.0, 1.0, 0.0);  // Yellow
-    lookupTable.addRGBPoint(interp(1.0),  1.0, 0.0, 0.0);  // Red for maximum
+    for (const [t, r, g, b] of colorMap) {
+      lookupTable.addRGBPoint(interp(t), r, g, b);
+    }
 
     // Apply color mapping to mapper
     mapper.setLookupTable(lookupTable);
@@ -213,6 +214,12 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
 
     if (layerId === 'recharge_nodes') {
       applyDisplayColorFromFieldData(layer);
+    }
+
+    if (layerId === 'isoline_segments') {
+            applyColorMapping(layer, 'X0');
+      //layer.actor.getProperty().setColor(1.0, 0.753, 0.796);
+      // layer.mapper.setScalarVisibility(false);
     }
 
     // Add actor to renderer if not already added
