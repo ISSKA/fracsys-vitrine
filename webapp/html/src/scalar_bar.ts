@@ -4,7 +4,8 @@
 
 export interface ScalarBarConfig {
   name: string;           // Label for the axis (e.g., "H (m)", "Q", "Type")
-  rightPx?: number;       // Distance from the right edge of the viewport in pixels
+  leftPx?: number;        // Distance from the left edge of the viewport in pixels
+  topPx?: number;         // Distance from the top edge of the viewport in pixels
   scientificNotation?: boolean; // Use scientific notation for tick labels (e.g. for very small values)
   logarithmic?: boolean;        // Space ticks and gradient on a log10 scale
   gradientCss?: string;         // Override the CSS background of the gradient strip
@@ -48,8 +49,11 @@ export function createScalarBar(
 ): ScalarBarManager {
   const panel = document.createElement('div');
   panel.className = 'scalar-bar-panel';
-  if (config.rightPx !== undefined) {
-    panel.style.right = `${config.rightPx}px`;
+  if (config.leftPx !== undefined) {
+    panel.style.left = `${config.leftPx}px`;
+  }
+  if (config.topPx !== undefined) {
+    panel.style.top = `${config.topPx}px`;
   }
   document.body.appendChild(panel);
 
@@ -116,10 +120,11 @@ export function createScalarBar(
 }
 
 /**
- * Default configuration for the primary scalar bar (rightmost).
+ * Default configuration for the primary scalar bar (slot 0).
+ * leftPx and topPx are set dynamically at runtime.
  */
 export const DEFAULT_SCALAR_BAR_CONFIG: Omit<ScalarBarConfig, 'name'> = {
-  rightPx: 20,
+  leftPx: 10,
   position: { x: 0.88, y: 0.15 },
   size: { width: 0.08, height: 0.7 },
   textStyle: {
@@ -131,11 +136,11 @@ export const DEFAULT_SCALAR_BAR_CONFIG: Omit<ScalarBarConfig, 'name'> = {
 };
 
 /**
- * Configuration for a secondary scalar bar, positioned to the left of the primary.
- * Offset = primary rightPx (20) + panel width (80) + gap (10) = 110px.
+ * Configuration for a secondary scalar bar (slot 1).
+ * Offset = leftPx (10) + panel width (80) + gap (5) = 95px.
  */
 export const SECONDARY_SCALAR_BAR_CONFIG: Omit<ScalarBarConfig, 'name'> = {
-  rightPx: 110,
+  leftPx: 95,
   scientificNotation: true,
   logarithmic: true,
   position: { x: 0.77, y: 0.15 },
@@ -149,11 +154,11 @@ export const SECONDARY_SCALAR_BAR_CONFIG: Omit<ScalarBarConfig, 'name'> = {
 };
 
 /**
- * Configuration for a tertiary scalar bar, positioned to the left of the secondary.
- * Offset = secondary rightPx (110) + panel width (80) + gap (10) = 200px.
+ * Configuration for a tertiary scalar bar (slot 2).
+ * Offset = secondary leftPx (95) + panel width (80) + gap (5) = 180px.
  */
 export const TERTIARY_SCALAR_BAR_CONFIG: Omit<ScalarBarConfig, 'name'> = {
-  rightPx: 200,
+  leftPx: 180,
   position: { x: 0.66, y: 0.15 },
   size: { width: 0.08, height: 0.7 },
   textStyle: {

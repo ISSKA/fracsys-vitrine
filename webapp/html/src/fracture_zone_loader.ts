@@ -75,15 +75,18 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
   }
 
   function updateScalarBar(lut: any, name: string, slot: 0 | 1 | 2 = 0, gradientCss?: string): void {
+    const controlsRect = document.getElementById('controls')?.getBoundingClientRect();
+    const topPx = controlsRect ? Math.round(controlsRect.bottom + 10) : 300;
+
     if (slot === 2) {
       scalarBarManagerI?.remove(renderer);
-      scalarBarManagerI = createScalarBar(renderer, lut, { name, gradientCss, ...TERTIARY_SCALAR_BAR_CONFIG });
+      scalarBarManagerI = createScalarBar(renderer, lut, { name, gradientCss, topPx, ...TERTIARY_SCALAR_BAR_CONFIG });
     } else if (slot === 1) {
       scalarBarManagerQ?.remove(renderer);
-      scalarBarManagerQ = createScalarBar(renderer, lut, { name, gradientCss, ...SECONDARY_SCALAR_BAR_CONFIG });
+      scalarBarManagerQ = createScalarBar(renderer, lut, { name, gradientCss, topPx, ...SECONDARY_SCALAR_BAR_CONFIG });
     } else {
       scalarBarManagerH?.remove(renderer);
-      scalarBarManagerH = createScalarBar(renderer, lut, { name, gradientCss, ...DEFAULT_SCALAR_BAR_CONFIG });
+      scalarBarManagerH = createScalarBar(renderer, lut, { name, gradientCss, topPx, ...DEFAULT_SCALAR_BAR_CONFIG });
     }
   }
 
