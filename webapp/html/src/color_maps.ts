@@ -35,6 +35,14 @@ export const COLOR_MAPS = {
     [1.0,  0.71, 0.02, 0.15],
   ] as ColorMap,
 
+  /** Deep pink → Rose → Light pink → White. */
+  roseWhite: [
+    [0.0,  0.796, 0.000, 0.275],
+    [0.33, 0.929, 0.329, 0.518],
+    [0.66, 0.988, 0.682, 0.773],
+    [1.0,  1.000, 1.000, 1.000],
+  ] as ColorMap,
+
   /** Dark blue → Teal → Yellow (perceptually uniform viridis-like). */
   viridis: [
     [0.0,  0.267, 0.004, 0.329],

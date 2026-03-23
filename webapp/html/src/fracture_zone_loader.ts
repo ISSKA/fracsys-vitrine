@@ -217,7 +217,7 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     }
 
     if (layerId === 'isoline_segments') {
-            applyColorMapping(layer, 'X0');
+      applyColorMapping(layer, 'X0', false, COLOR_MAPS.roseWhite);
       //layer.actor.getProperty().setColor(1.0, 0.753, 0.796);
       // layer.mapper.setScalarVisibility(false);
     }
