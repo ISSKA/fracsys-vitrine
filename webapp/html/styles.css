@@ -74,10 +74,6 @@ button:disabled:hover {
     background: #cccccc;
 }
 
-input[type="file"] {
-    margin: 5px 0;
-}
-
 #download-progress {
     position: fixed;
     top: 50%;
@@ -196,13 +192,6 @@ input[type="file"] {
 .scalar-bar-gradient {
   width: 20px;
   flex-shrink: 0;
-  background: linear-gradient(to bottom,
-    rgb(255, 0, 0),
-    rgb(255, 255, 0),
-    rgb(0, 255, 0),
-    rgb(0, 255, 255),
-    rgb(0, 0, 255)
-  );
   border-radius: 2px;
 }
 
