@@ -2,7 +2,7 @@ import vtkXMLPolyDataReader from '@kitware/vtk.js/IO/XML/XMLPolyDataReader';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
-import { createScalarBar, DEFAULT_SCALAR_BAR_CONFIG, SECONDARY_SCALAR_BAR_CONFIG, type ScalarBarManager } from './scalar_bar.js';
+import { createScalarBar, DEFAULT_SCALAR_BAR_CONFIG, SECONDARY_SCALAR_BAR_CONFIG, TERTIARY_SCALAR_BAR_CONFIG, type ScalarBarManager } from './scalar_bar.js';
 import { type ColorMap, COLOR_MAPS, colorMapToCss } from './color_maps.js';
 import { LAYERS, type LayerConfig } from './layers.config.js';
 
@@ -57,6 +57,7 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
   let isInitialized = false;
   let scalarBarManagerH: ScalarBarManager | null = null;
   let scalarBarManagerQ: ScalarBarManager | null = null;
+  let scalarBarManagerI: ScalarBarManager | null = null;
 
   function createLayer(layerId: string): Layer {
     const mapper = vtkMapper.newInstance();
@@ -73,8 +74,11 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     return layers[layerId];
   }
 
-  function updateScalarBar(lut: any, name: string, secondary: boolean = false, gradientCss?: string): void {
-    if (secondary) {
+  function updateScalarBar(lut: any, name: string, slot: 0 | 1 | 2 = 0, gradientCss?: string): void {
+    if (slot === 2) {
+      scalarBarManagerI?.remove(renderer);
+      scalarBarManagerI = createScalarBar(renderer, lut, { name, gradientCss, ...TERTIARY_SCALAR_BAR_CONFIG });
+    } else if (slot === 1) {
       scalarBarManagerQ?.remove(renderer);
       scalarBarManagerQ = createScalarBar(renderer, lut, { name, gradientCss, ...SECONDARY_SCALAR_BAR_CONFIG });
     } else {
@@ -122,7 +126,7 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     mapper.setScalarVisibility(false);
   }
 
-  function applyColorMapping(layer: Layer, arrayName: string = 'H', logarithmic: boolean = false, colorMap: ColorMap = COLOR_MAPS.rainbow): void {
+  function applyColorMapping(layer: Layer, arrayName: string = 'H', logarithmic: boolean = false, colorMap: ColorMap = COLOR_MAPS.rainbow, slot: 0 | 1 | 2 = 0): void {
     const { mapper, source } = layer;
     if (!source) return;
 
@@ -177,9 +181,8 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     mapper.setColorByArrayName(arrayName);
 
     // Create/update scalar bar
-    const isSecondary = logarithmic;
     const label = arrayName === 'H' ? 'Hydraulic Head (m)' : `${arrayName} (m³/s)`;
-    updateScalarBar(lookupTable, label, isSecondary, colorMapToCss(colorMap));
+    updateScalarBar(lookupTable, label, slot, colorMapToCss(colorMap));
 
     console.log(`Applied color mapping for '${arrayName}' (${useCellData ? 'CellData' : 'PointData'}) with range [${min.toFixed(2)}, ${max.toFixed(2)}]`);
   }
@@ -202,9 +205,9 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
 
     // Apply color mapping based on scalar data
     if (layerId === 'sat_glyphs' || layerId === 'unsat_glyphs') {
-      applyColorMapping(layer, 'H');
+      applyColorMapping(layer, 'H', false, COLOR_MAPS.rainbow, 0);
     } else if (layerId === 'G_sat_flow') {
-      applyColorMapping(layer, 'Q', true);
+      applyColorMapping(layer, 'Q', true, COLOR_MAPS.rainbow, 1);
     }
 
     // Apply flat colour from FieldData for the source glyph sphere
@@ -217,7 +220,7 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     }
 
     if (layerId === 'isoline_segments') {
-      applyColorMapping(layer, 'X0', false, COLOR_MAPS.roseWhite);
+      applyColorMapping(layer, 'X0', false, COLOR_MAPS.roseWhite, 2);
       //layer.actor.getProperty().setColor(1.0, 0.753, 0.796);
       // layer.mapper.setScalarVisibility(false);
     }
@@ -356,6 +359,7 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
   function setScalarBarsVisible(visible: boolean): void {
     scalarBarManagerH?.setVisibility(visible);
     scalarBarManagerQ?.setVisibility(visible);
+    scalarBarManagerI?.setVisibility(visible);
   }
 
   return {
