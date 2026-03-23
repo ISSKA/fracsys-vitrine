@@ -9,3 +9,5 @@
 
 # ignoring virtual env
 venv/
+
+node_modules/
