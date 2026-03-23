@@ -149,12 +149,12 @@ input[type="file"] {
 
 .collapsible-toggle::before {
   content: '▾ ';
-  font-size: 16px;
+  font-size: 24px;
 }
 
 .collapsible-toggle.collapsed::before {
   content: '▸ ';
-  font-size: 16px;
+  font-size: 24px;
 }
 
 #layerCheckboxes.collapsed {
