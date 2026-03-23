@@ -164,6 +164,33 @@ function createLayerCheckboxes(): void {
     div.appendChild(label);
     container.appendChild(div);
   });
+
+  const buttonRow = document.createElement('div');
+  buttonRow.style.marginTop = '6px';
+
+  const selectBtn = document.createElement('button');
+  selectBtn.textContent = 'Select all';
+  selectBtn.addEventListener('click', () => {
+    fileLoader.LAYERS.forEach((layerDef: LayerConfig) => {
+      fileLoader.setLayerVisibility(layerDef.id, true);
+      const cb = document.getElementById(`layer-${layerDef.id}`) as HTMLInputElement | null;
+      if (cb) cb.checked = true;
+    });
+  });
+
+  const deselectBtn = document.createElement('button');
+  deselectBtn.textContent = 'Deselect all';
+  deselectBtn.addEventListener('click', () => {
+    fileLoader.LAYERS.forEach((layerDef: LayerConfig) => {
+      fileLoader.setLayerVisibility(layerDef.id, false);
+      const cb = document.getElementById(`layer-${layerDef.id}`) as HTMLInputElement | null;
+      if (cb) cb.checked = false;
+    });
+  });
+
+  buttonRow.appendChild(selectBtn);
+  buttonRow.appendChild(deselectBtn);
+  container.appendChild(buttonRow);
 }
 
 // Initialize layer checkboxes
