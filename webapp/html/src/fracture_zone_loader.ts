@@ -3,7 +3,7 @@ import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import { createScalarBar, DEFAULT_SCALAR_BAR_CONFIG, SECONDARY_SCALAR_BAR_CONFIG, type ScalarBarManager } from './scalar_bar.js';
-import { type ColorMap, COLOR_MAPS } from './color_maps.js';
+import { type ColorMap, COLOR_MAPS, colorMapToCss } from './color_maps.js';
 import { LAYERS, type LayerConfig } from './layers.config.js';
 
 // ============================================================================
@@ -73,13 +73,13 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     return layers[layerId];
   }
 
-  function updateScalarBar(lut: any, name: string, secondary: boolean = false): void {
+  function updateScalarBar(lut: any, name: string, secondary: boolean = false, gradientCss?: string): void {
     if (secondary) {
       scalarBarManagerQ?.remove(renderer);
-      scalarBarManagerQ = createScalarBar(renderer, lut, { name, ...SECONDARY_SCALAR_BAR_CONFIG });
+      scalarBarManagerQ = createScalarBar(renderer, lut, { name, gradientCss, ...SECONDARY_SCALAR_BAR_CONFIG });
     } else {
       scalarBarManagerH?.remove(renderer);
-      scalarBarManagerH = createScalarBar(renderer, lut, { name, ...DEFAULT_SCALAR_BAR_CONFIG });
+      scalarBarManagerH = createScalarBar(renderer, lut, { name, gradientCss, ...DEFAULT_SCALAR_BAR_CONFIG });
     }
   }
 
@@ -177,9 +177,9 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     mapper.setColorByArrayName(arrayName);
 
     // Create/update scalar bar
-    const isSecondary = useCellData;
+    const isSecondary = logarithmic;
     const label = arrayName === 'H' ? 'Hydraulic Head (m)' : `${arrayName} (m³/s)`;
-    updateScalarBar(lookupTable, label, isSecondary);
+    updateScalarBar(lookupTable, label, isSecondary, colorMapToCss(colorMap));
 
     console.log(`Applied color mapping for '${arrayName}' (${useCellData ? 'CellData' : 'PointData'}) with range [${min.toFixed(2)}, ${max.toFixed(2)}]`);
   }

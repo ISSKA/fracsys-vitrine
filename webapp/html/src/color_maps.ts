@@ -9,6 +9,23 @@ export type ColorMapStop = [number, number, number, number];
 export type ColorMap = ColorMapStop[];
 
 // ============================================================================
+// Utilities
+// ============================================================================
+
+/**
+ * Converts a ColorMap to a CSS linear-gradient string (bottom = min, top = max),
+ * suitable for use as a scalar bar gradient background.
+ */
+export function colorMapToCss(colorMap: ColorMap): string {
+  const stops = colorMap
+    .map(([t, r, g, b]) =>
+      `rgb(${Math.round(r * 255)},${Math.round(g * 255)},${Math.round(b * 255)}) ${(t * 100).toFixed(0)}%`
+    )
+    .join(', ');
+  return `linear-gradient(to top, ${stops})`;
+}
+
+// ============================================================================
 // Color map presets
 // ============================================================================
 
