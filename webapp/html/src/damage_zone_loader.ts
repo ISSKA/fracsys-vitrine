@@ -36,6 +36,11 @@ let damageZoneActor: any = null;
 let damageZoneLoaded = false;
 let sizeScalarBarManager: ScalarBarManager | null = null;
 
+function getScalarBarTopPx(): number {
+  const controlsRect = document.getElementById('controls')?.getBoundingClientRect();
+  return controlsRect ? Math.round(controlsRect.bottom + 10) : 300;
+}
+
 // ============================================================================
 // Zone Management
 // ============================================================================
@@ -199,6 +204,7 @@ function applyColorMappingBySize(source: any, mapper: any): void {
   sizeScalarBarManager?.remove(null);
   sizeScalarBarManager = createScalarBar(null, lut, {
     name: 'Size [m]',
+    topPx: getScalarBarTopPx(),
     ...DEFAULT_SCALAR_BAR_CONFIG,
     gradientCss
   });
