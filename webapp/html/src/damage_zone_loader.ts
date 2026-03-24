@@ -32,6 +32,11 @@ interface DamageZoneLoaderDeps {
 
 type DamageZoneVariant = keyof typeof DAMAGE_ZONE_FILENAMES;
 
+interface CachedDamageZoneModel {
+  actor: any;
+  scalarBarManager: ScalarBarManager | null;
+}
+
 // ============================================================================
 // State
 // ============================================================================
@@ -41,6 +46,7 @@ let damageZoneActor: any = null;
 let sizeScalarBarManager: ScalarBarManager | null = null;
 let activeZone: 'fracture' | 'damage' = 'fracture';
 let loadedDamageZoneFilename: string | null = null;
+const damageZoneCache = new Map<string, CachedDamageZoneModel>();
 
 function getScalarBarTopPx(): number {
   const controlsRect = document.getElementById('controls')?.getBoundingClientRect();
@@ -65,11 +71,7 @@ export function showFractureZone(): void {
 
   if (!deps) return;
 
-  // Hide damage zone actor and its scalar bar
-  if (damageZoneActor) {
-    damageZoneActor.setVisibility(false);
-  }
-  sizeScalarBarManager?.setVisibility(false);
+  hideActiveDamageZoneModel();
 
   if (deps.fileLoader.isInitialized()) {
     // Restore fracture zone layer visibility and scalar bars
@@ -194,11 +196,11 @@ const SIZE_COLOR_STOPS: ColorStop[] = [
   { t: 1.0, r: 255, g: 255, b: 255 },  // White      — maximum size
 ];
 
-function applyColorMappingBySize(source: any, mapper: any): void {
+function applyColorMappingBySize(source: any, mapper: any): ScalarBarManager | null {
   const dataArray = source.getPointData().getArrayByName('size');
   if (!dataArray) {
     console.warn("Array 'size' not found in PointData");
-    return;
+    return null;
   }
 
   const [min, max] = dataArray.getRange();
@@ -213,8 +215,7 @@ function applyColorMappingBySize(source: any, mapper: any): void {
   mapper.setScalarModeToUsePointFieldData();
   mapper.setColorByArrayName('size');
 
-  sizeScalarBarManager?.remove(null);
-  sizeScalarBarManager = createScalarBar(null, lut, {
+  return createScalarBar(null, lut, {
     name: 'Size [m]',
     topPx: getScalarBarTopPx(),
     ...DEFAULT_SCALAR_BAR_CONFIG,
@@ -242,14 +243,25 @@ function setDamageZoneModelControlsVisibility(visible: boolean): void {
   }
 }
 
-function clearDamageZoneActor(): void {
-  if (deps && damageZoneActor) {
-    deps.renderer.removeActor(damageZoneActor);
+function hideActiveDamageZoneModel(): void {
+  if (damageZoneActor) {
+    damageZoneActor.setVisibility(false);
   }
-  damageZoneActor = null;
-  loadedDamageZoneFilename = null;
-  sizeScalarBarManager?.remove(null);
-  sizeScalarBarManager = null;
+  sizeScalarBarManager?.setVisibility(false);
+}
+
+function activateDamageZoneModel(filename: string): void {
+  const cachedModel = damageZoneCache.get(filename);
+  if (!cachedModel) return;
+
+  hideActiveDamageZoneModel();
+
+  damageZoneActor = cachedModel.actor;
+  sizeScalarBarManager = cachedModel.scalarBarManager;
+  loadedDamageZoneFilename = filename;
+
+  damageZoneActor.setVisibility(true);
+  sizeScalarBarManager?.setVisibility(true);
 }
 
 
@@ -260,7 +272,12 @@ function clearDamageZoneActor(): void {
 async function loadDamageZoneFromCloud(filename: string): Promise<void> {
   if (!deps) return;
 
-  clearDamageZoneActor();
+  const cachedModel = damageZoneCache.get(filename);
+  if (cachedModel) {
+    activateDamageZoneModel(filename);
+    return;
+  }
+
   showProgress();
   try {
     // Step 1: Get signed URL from API
@@ -319,13 +336,19 @@ async function loadDamageZoneFromCloud(filename: string): Promise<void> {
     const mapper = vtkMapper.newInstance();
     mapper.setInputData(source);
 
-    applyColorMappingBySize(source, mapper);
+    const scalarBarManager = applyColorMappingBySize(source, mapper);
 
-    damageZoneActor = vtkActor.newInstance();
-    damageZoneActor.setMapper(mapper);
+    const actor = vtkActor.newInstance();
+    actor.setMapper(mapper);
+    actor.setVisibility(false);
+    scalarBarManager?.setVisibility(false);
 
-    deps.renderer.addActor(damageZoneActor);
-    loadedDamageZoneFilename = filename;
+    deps.renderer.addActor(actor);
+    damageZoneCache.set(filename, {
+      actor,
+      scalarBarManager
+    });
+    activateDamageZoneModel(filename);
   } catch (error) {
     hideProgress();
     throw error;
