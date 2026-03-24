@@ -204,6 +204,11 @@ function applyColorMappingBySize(source: any, mapper: any): void {
   });
 }
 
+function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
 // ============================================================================
 // File Loading
 // ============================================================================
@@ -255,8 +260,12 @@ async function loadDamageZoneFromCloud(): Promise<void> {
     // Step 3: Parse and create actor
     // Show spinner and yield one frame so the browser paints before the
     // synchronous parse blocks the main thread.
-    setProgressLabel('Parsing\u2026');
+    setProgressLabel('Parsing (will take some time)\u2026');
     showSpinner();
+    
+    // Wait a bit before proceeding. This allows for the user to
+    // read the message.
+    await sleep(500);
     await new Promise(resolve => requestAnimationFrame(resolve));
     const vtkreader = vtkXMLPolyDataReader.newInstance();
     vtkreader.parseAsArrayBuffer(buffer.buffer);
