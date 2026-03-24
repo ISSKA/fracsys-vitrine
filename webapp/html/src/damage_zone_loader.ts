@@ -15,7 +15,10 @@ import type { FileLoaderAPI } from './fracture_zone_loader.js';
 // ============================================================================
 
 const API_ENDPOINT = 'https://xhx5lqfvq1.execute-api.eu-central-1.amazonaws.com/prod/download-url';
-const DAMAGE_ZONE_FILENAME = 'damage_zone.vtp';
+const DAMAGE_ZONE_FILENAMES = {
+  full: 'damage_zone.vtp',
+  optimized: 'damage_zone_optimized.vtp'
+} as const;
 
 // ============================================================================
 // Types
@@ -27,14 +30,17 @@ interface DamageZoneLoaderDeps {
   fileLoader: FileLoaderAPI;
 }
 
+type DamageZoneVariant = keyof typeof DAMAGE_ZONE_FILENAMES;
+
 // ============================================================================
 // State
 // ============================================================================
 
 let deps: DamageZoneLoaderDeps | null = null;
 let damageZoneActor: any = null;
-let damageZoneLoaded = false;
 let sizeScalarBarManager: ScalarBarManager | null = null;
+let activeZone: 'fracture' | 'damage' = 'fracture';
+let loadedDamageZoneFilename: string | null = null;
 
 function getScalarBarTopPx(): number {
   const controlsRect = document.getElementById('controls')?.getBoundingClientRect();
@@ -49,10 +55,13 @@ function getScalarBarTopPx(): number {
  * Shows the fracture zone and displays layer controls
  */
 export function showFractureZone(): void {
+  activeZone = 'fracture';
+
   const layerControls = document.getElementById('layerControls');
   if (layerControls) {
     layerControls.style.display = 'block';
   }
+  setDamageZoneModelControlsVisibility(false);
 
   if (!deps) return;
 
@@ -80,12 +89,14 @@ export function showFractureZone(): void {
  * Shows the damage zone and hides layer controls
  */
 export async function showDamageZone(): Promise<void> {
+  activeZone = 'damage';
   if (!deps) return;
 
   const layerControls = document.getElementById('layerControls');
   if (layerControls) {
     layerControls.style.display = 'none';
   }
+  setDamageZoneModelControlsVisibility(true);
 
   // Hide all fracture zone actors and their scalar bars
   for (const layerId in deps.fileLoader.layers) {
@@ -93,10 +104,11 @@ export async function showDamageZone(): Promise<void> {
   }
   deps.fileLoader.setScalarBarsVisible(false);
 
-  if (!damageZoneLoaded) {
+  const filename = getSelectedDamageZoneFilename();
+
+  if (loadedDamageZoneFilename !== filename) {
     try {
-      await loadDamageZoneFromCloud();
-      damageZoneLoaded = true;
+      await loadDamageZoneFromCloud(filename);
     } catch (error) {
       console.error('Error loading damage zone:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -214,18 +226,45 @@ function sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function getSelectedDamageZoneVariant(): DamageZoneVariant {
+  const selected = document.querySelector<HTMLInputElement>('input[name="damage-zone-model"]:checked');
+  return selected?.value === 'full' ? 'full' : 'optimized';
+}
+
+function getSelectedDamageZoneFilename(): string {
+  return DAMAGE_ZONE_FILENAMES[getSelectedDamageZoneVariant()];
+}
+
+function setDamageZoneModelControlsVisibility(visible: boolean): void {
+  const controls = document.getElementById('damageZoneModelControls');
+  if (controls) {
+    controls.style.display = visible ? 'block' : 'none';
+  }
+}
+
+function clearDamageZoneActor(): void {
+  if (deps && damageZoneActor) {
+    deps.renderer.removeActor(damageZoneActor);
+  }
+  damageZoneActor = null;
+  loadedDamageZoneFilename = null;
+  sizeScalarBarManager?.remove(null);
+  sizeScalarBarManager = null;
+}
+
 
 // ============================================================================
 // File Loading
 // ============================================================================
 
-async function loadDamageZoneFromCloud(): Promise<void> {
+async function loadDamageZoneFromCloud(filename: string): Promise<void> {
   if (!deps) return;
 
+  clearDamageZoneActor();
   showProgress();
   try {
     // Step 1: Get signed URL from API
-    const response = await fetch(`${API_ENDPOINT}?key=${DAMAGE_ZONE_FILENAME}`);
+    const response = await fetch(`${API_ENDPOINT}?key=${filename}`);
     if (!response.ok) {
       throw new Error(`Failed to get signed URL: ${response.statusText}`);
     }
@@ -235,7 +274,7 @@ async function loadDamageZoneFromCloud(): Promise<void> {
     // Step 2: Download the file from S3, streaming to track progress
     const fileResponse = await fetch(data.signedUrl);
     if (!fileResponse.ok) {
-      throw new Error(`Failed to download ${DAMAGE_ZONE_FILENAME}: ${fileResponse.statusText}`);
+      throw new Error(`Failed to download ${filename}: ${fileResponse.statusText}`);
     }
 
     const contentLength = Number(fileResponse.headers.get('Content-Length')) || 0;
@@ -286,10 +325,25 @@ async function loadDamageZoneFromCloud(): Promise<void> {
     damageZoneActor.setMapper(mapper);
 
     deps.renderer.addActor(damageZoneActor);
+    loadedDamageZoneFilename = filename;
   } catch (error) {
     hideProgress();
     throw error;
   }
+}
+
+function handleDamageZoneModelChange(): void {
+  if (activeZone === 'damage') {
+    void showDamageZone();
+  }
+}
+
+function initializeDamageZoneModelControls(): void {
+  const modelInputs = document.querySelectorAll<HTMLInputElement>('input[name="damage-zone-model"]');
+  modelInputs.forEach((input) => {
+    input.addEventListener('change', handleDamageZoneModelChange);
+  });
+  setDamageZoneModelControlsVisibility(false);
 }
 
 // ============================================================================
@@ -302,6 +356,7 @@ async function loadDamageZoneFromCloud(): Promise<void> {
  */
 export function initializeDamageZoneLoader(dependencies: DamageZoneLoaderDeps): void {
   deps = dependencies;
+  initializeDamageZoneModelControls();
   window.showFractureZone = showFractureZone;
   window.showDamageZone = showDamageZone;
 }
