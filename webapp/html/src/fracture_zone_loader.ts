@@ -184,7 +184,19 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     mapper.setColorByArrayName(arrayName);
 
     // Create/update scalar bar
-    const label = arrayName === 'H' ? 'Hydraulic Head (m)' : `${arrayName} (m³/s)`;
+    var label = "";
+
+    switch (arrayName) {
+      case 'H':
+        label = 'Hydraulic Head (m)';
+        break;
+      case 'Z0':
+        label = 'Height (m)';
+        break;
+      default:
+        label = `${arrayName} (m³/s)`;
+    }
+    // var label = arrayName === 'H' ? 'Hydraulic Head (m)' : `${arrayName} (m³/s)`;
     updateScalarBar(lookupTable, label, slot, colorMapToCss(colorMap));
 
     console.log(`Applied color mapping for '${arrayName}' (${useCellData ? 'CellData' : 'PointData'}) with range [${min.toFixed(2)}, ${max.toFixed(2)}]`);
@@ -223,9 +235,7 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     }
 
     if (layerId === 'isoline_segments') {
-      applyColorMapping(layer, 'X0', false, COLOR_MAPS.roseWhite, 2);
-      //layer.actor.getProperty().setColor(1.0, 0.753, 0.796);
-      // layer.mapper.setScalarVisibility(false);
+      applyColorMapping(layer, 'Z0', false, COLOR_MAPS.roseWhite, 2);
     }
 
     // Add actor to renderer if not already added
