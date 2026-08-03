@@ -298,4 +298,12 @@ window.toggleWireframe = function(): void {
 // Initialize damage zone loader
 initializeDamageZoneLoader({ renderer, renderWindow, fileLoader });
 
+// Wire up the control buttons. These used to be inline onclick attributes, which
+// a Content-Security-Policy without 'unsafe-inline' blocks. The window.* functions
+// are resolved at click time, exactly as the attributes did.
+document.getElementById('btn-fracture-zone')?.addEventListener('click', () => window.showFractureZone?.());
+document.getElementById('btn-damage-zone')?.addEventListener('click', () => window.showDamageZone?.());
+document.getElementById('btn-reset-camera')?.addEventListener('click', () => window.resetCamera?.());
+document.getElementById('btn-toggle-wireframe')?.addEventListener('click', () => window.toggleWireframe?.());
+
 // File input listener is set up in fracture_zone_loader.ts

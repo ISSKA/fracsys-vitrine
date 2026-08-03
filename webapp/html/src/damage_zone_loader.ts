@@ -375,7 +375,8 @@ function initializeDamageZoneModelControls(): void {
 
 /**
  * Initializes the damage zone loader with required VTK dependencies.
- * Exposes zone-switching functions to the window object for HTML onclick handlers.
+ * Exposes zone-switching functions to the window object, where the button
+ * listeners registered in app.ts look them up.
  */
 export function initializeDamageZoneLoader(dependencies: DamageZoneLoaderDeps): void {
   deps = dependencies;
