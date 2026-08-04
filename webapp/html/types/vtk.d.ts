@@ -52,7 +52,10 @@ declare module '@kitware/vtk.js/Rendering/Core/Mapper' {
 }
 
 declare module '@kitware/vtk.js/Interaction/Style/InteractorStyleManipulator' {
-  interface vtkInteractorStyleManipulator {}
+  interface vtkInteractorStyleManipulator {
+    setCenterOfRotation(xyz: number[]): boolean;
+    getCenterOfRotation(): number[];
+  }
 
   const vtkInteractorStyleManipulatorModule: {
     newInstance(): vtkInteractorStyleManipulator;

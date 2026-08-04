@@ -42,6 +42,21 @@ const interactorStyleDefinitions = [
 
 Presets.applyDefinitions(interactorStyleDefinitions, interactorStyle);
 
+// The rotate and roll manipulators pivot around the style's centerOfRotation,
+// which defaults to the world origin. The .vtp models are written in real-world
+// coordinates that can sit thousands of units away from it, so dragging swung
+// them straight out of the viewport. Track the camera's focal point instead:
+// resetCamera() places it at the centre of the visible bounds and panning carries
+// it along, so the pivot follows the model wherever the next upload puts it.
+const camera = renderer.getActiveCamera();
+
+function syncCenterOfRotation(): void {
+  interactorStyle.setCenterOfRotation(camera.getFocalPoint());
+}
+
+camera.onModified(syncCenterOfRotation);
+syncCenterOfRotation();
+
 // Setup cell picker
 const picker = vtkCellPicker.newInstance();
 picker.setPickFromList(1);
