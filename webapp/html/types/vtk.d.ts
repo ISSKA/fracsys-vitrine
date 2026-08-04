@@ -9,7 +9,10 @@ declare module '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow' {
   }
 
   const vtkFullScreenRenderWindowModule: {
-    newInstance(config?: { container: HTMLElement | null }): vtkFullScreenRenderWindow;
+    newInstance(config?: {
+      container: HTMLElement | null;
+      background?: number[];
+    }): vtkFullScreenRenderWindow;
   };
 
   export default vtkFullScreenRenderWindowModule;
