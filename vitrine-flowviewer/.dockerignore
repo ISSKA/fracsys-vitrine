@@ -1,0 +1,15 @@
+node_modules
+dist
+backup
+.git
+.gitignore
+.claude
+.env
+.env.local
+.env.*.local
+Dockerfile
+.dockerignore
+docker-compose.yml
+*.md
+!README.md
+fracsys-meshviewer

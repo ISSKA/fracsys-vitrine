@@ -1,0 +1,33 @@
+services:
+  # Production image: static bundle served by nginx on http://localhost:8080
+  web:
+    build:
+      context: .
+      target: runtime
+      args:
+        DEPLOY_BASE: ${DEPLOY_BASE:-/}
+        VITE_DEFAULT_GRID_FILENAME: ${VITE_DEFAULT_GRID_FILENAME:-flow_network_voxels.csv}
+    image: fracsys-flowviewer:latest
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    # Swap grid CSVs without rebuilding the image:
+    # volumes:
+    #   - ./public/data:/usr/share/nginx/html/data:ro
+
+  # Dev server with hot reload on http://localhost:5173 — `docker compose up dev`
+  dev:
+    profiles: ["dev"]
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0"
+    environment:
+      DEPLOY_BASE: /
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+
+volumes:
+  node_modules:
