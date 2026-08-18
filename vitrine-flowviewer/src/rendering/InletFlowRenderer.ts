@@ -1,8 +1,26 @@
 import * as THREE from 'three';
 import { VoxelGrid } from '../grid/VoxelGrid';
 
-/** Seconds it takes for a ball to travel from one cell to the next downstream cell. */
-const STEP_DURATION = 0.25;
+/**
+ * Animation seconds a hop takes at the *reference* velocity (the median over the
+ * inlet-reachable voxels). Every other cell is timed relative to this, so it
+ * preserves the pace of the previous fixed-rate animation.
+ */
+const REFERENCE_STEP_DURATION = 0.25;
+
+/**
+ * Clamps on per-hop duration. MIN bounds the `while (ball.t >= 1)` loop and
+ * prevents teleporting; MAX keeps a zero-velocity cell from reading as a hung
+ * animation while still letting the ball eventually advance and retire.
+ * Neither is active on the shipped grid (real range 0.105 s – 0.743 s), so they
+ * do not compress the real velocity spread.
+ */
+const MIN_STEP_DURATION = 0.02;
+const MAX_STEP_DURATION = 5.0;
+
+/** Seconds between spawns at each inlet, independent of local velocity. */
+const SPAWN_INTERVAL = 0.25;
+
 const OUTLET_LABEL_COLOR = '#ff0000';
 
 /**
@@ -22,6 +40,8 @@ interface Ball {
   t: number;
   /** Cells travelled so far; the ball is retired once this reaches MAX_BALL_STEPS. */
   steps: number;
+  /** Seconds for the current fromIdx → toIdx hop. Recomputed on every cell change, never per-frame. */
+  stepDuration: number;
   fromPos: THREE.Vector3;
   toPos: THREE.Vector3;
 }
@@ -36,9 +56,14 @@ interface OutletCounter {
 
 /**
  * Renders a continuous stream of water balls flowing through the network.
- * Each inlet voxel spawns a new ball whenever its cell is unoccupied; balls
- * walk one cell per STEP_DURATION seconds along `getDownstreamFromIndex` and
- * are removed when they reach an outlet voxel or a dead-end (downstream == -1).
+ * Each inlet voxel spawns a new ball every SPAWN_INTERVAL seconds; balls walk
+ * one cell at a time along `getDownstreamFromIndex`, each hop taking a time
+ * derived from the two cells' velocities (see `stepDurationFor`), and are
+ * removed when they reach an outlet voxel or a dead-end (downstream == -1).
+ *
+ * Spawn rate is deliberately uniform across inlets while travel speed varies,
+ * so particle density reads as inversely proportional to speed (the continuity
+ * relation) rather than inlet flux varying with local velocity.
  *
  * `balls` is a compact list of currently-active balls — its length is the
  * InstancedMesh's draw count. Deactivation uses swap-and-pop to keep it dense,
@@ -50,7 +75,14 @@ export class InletFlowRenderer {
   private mesh: THREE.InstancedMesh | undefined;
   private balls: Ball[] = [];
   private capacity = 0;
-  private occupancy: Uint8Array;
+  /**
+   * Divides physical crossing times to get watchable animation times. Derived
+   * from the data at construction so any CSV self-calibrates. Stays 1 when there
+   * are no inlets (the constructor returns early and update() bails on `!mesh`).
+   */
+  private timeScale = 1;
+  /** Seconds accumulated since each inlet last spawned; parallel to inletIndices. */
+  private spawnAccum: Float32Array;
   private inletIndices: number[] = [];
   private outletCounters = new Map<number, OutletCounter>();
   private tmpMatrix = new THREE.Matrix4();
@@ -59,7 +91,6 @@ export class InletFlowRenderer {
   constructor(grid: VoxelGrid) {
     this.grid = grid;
     this.group = new THREE.Group();
-    this.occupancy = new Uint8Array(grid.nx * grid.ny * grid.nz);
 
     for (let z = 0; z < grid.nz; z++) {
       for (let y = 0; y < grid.ny; y++) {
@@ -75,7 +106,12 @@ export class InletFlowRenderer {
       }
     }
 
+    // Assigned before the early return so the field is initialized on every path.
+    this.spawnAccum = new Float32Array(this.inletIndices.length);
+
     if (this.inletIndices.length === 0) return;
+
+    this.timeScale = this.computeTimeScale();
 
     // Spawn ceiling. Not `existingCount`: flow paths merge and the data contains
     // cycles (balls in a cycle never reach a dead-end, so they are never removed
@@ -90,7 +126,9 @@ export class InletFlowRenderer {
     this.mesh.count = 0;
     this.group.add(this.mesh);
 
-    this.spawnAtEmptyInlets();
+    // Seed a full interval so the stream starts immediately.
+    this.spawnAccum.fill(SPAWN_INTERVAL);
+    this.spawnAtInlets(0);
     this.writeMatrices();
   }
 
@@ -117,20 +155,18 @@ export class InletFlowRenderer {
     this.group.clear();
   }
 
-  /** Advance ball animations by `dt` seconds, then spawn at any empty inlets. */
+  /** Advance ball animations by `dt` seconds, then spawn at any due inlets. */
   update(dt: number): void {
     if (!this.mesh) return;
 
     // Iterate in reverse so swap-and-pop removals don't skip elements.
     for (let i = this.balls.length - 1; i >= 0; i--) {
       const ball = this.balls[i];
-      ball.t += dt / STEP_DURATION;
+      ball.t += dt / ball.stepDuration;
       while (ball.t >= 1) {
-        // Arrive at toIdx. Clear occupancy at old fromIdx.
-        this.occupancy[ball.fromIdx] = 0;
+        // Arrive at toIdx.
         ball.fromIdx = ball.toIdx;
         ball.fromPos.copy(ball.toPos);
-        ball.t -= 1;
 
         ball.steps++;
         this.countOutletPass(ball.fromIdx);
@@ -144,31 +180,134 @@ export class InletFlowRenderer {
         const next = this.grid.getDownstreamFromIndex(ball.fromIdx);
         if (next < 0 || ball.steps >= MAX_BALL_STEPS) {
           // Dead-end, or lifetime cap reached (cyclic paths never hit a dead-end).
-          // Remove the ball; its current cell is left unoccupied.
           this.removeBallAt(i);
           break;
         }
-        this.occupancy[ball.fromIdx] = 1;
         ball.toIdx = next;
         ball.toPos.copy(this.worldPosForIndex(next));
+
+        // Recompute inside the loop: one frame can cross several cells, each at
+        // its own rate. Then rescale the carried-over progress, which is still
+        // expressed in the previous cell's time units — carrying it unscaled
+        // would pop the ball by up to half a voxel at a velocity boundary. Both
+        // durations are clamped, so the ratio is finite. The `while` condition
+        // is re-tested afterwards and correctly so: entering a much faster cell
+        // can legitimately push the rescaled remainder back over 1.
+        const prevStepDuration = ball.stepDuration;
+        ball.stepDuration = this.stepDurationFor(
+          ball.fromIdx, next, ball.fromPos, ball.toPos,
+        );
+        ball.t = ((ball.t - 1) * prevStepDuration) / ball.stepDuration;
       }
     }
 
-    this.spawnAtEmptyInlets();
+    this.spawnAtInlets(dt);
     this.writeMatrices();
+  }
+
+  /**
+   * Seconds to cross the from→to segment: the ball spends half the gap inside
+   * each cell at that cell's own velocity, so the physical time is
+   * d/2/vFrom + d/2/vTo. Converted to animation time by timeScale, then clamped.
+   *
+   * Distance comes from the actual world positions rather than voxelSize:
+   * `downstream` links are CSV-supplied and not guaranteed axis-adjacent (the
+   * shipped file has 254 links spanning 2–10 cells, though none on the paths
+   * reachable from its inlets).
+   *
+   * A cell with velocity <= 0 stalls at MAX_STEP_DURATION rather than retiring
+   * the ball: that makes a data glitch visible as a clot instead of silently
+   * deleting water, and it is self-limiting because the finite clamp still lets
+   * the ball advance and be retired by the usual dead-end / MAX_BALL_STEPS path.
+   */
+  private stepDurationFor(
+    fromIdx: number,
+    toIdx: number,
+    fromPos: THREE.Vector3,
+    toPos: THREE.Vector3,
+  ): number {
+    const vFrom = this.grid.getVelocityFromIndex(fromIdx);
+    const vTo = this.grid.getVelocityFromIndex(toIdx);
+    // Negated positive test rejects 0, negatives and NaN at once.
+    if (!(vFrom > 0) || !(vTo > 0)) return MAX_STEP_DURATION;
+    const d = fromPos.distanceTo(toPos);
+    const seconds = 0.5 * d * (1 / vFrom + 1 / vTo) / this.timeScale;
+    // A NaN reaching instanceMatrix gives the mesh a NaN bounding sphere, which
+    // frustum-culls the entire InstancedMesh — every ball vanishes at once.
+    if (!Number.isFinite(seconds)) return MAX_STEP_DURATION;
+    return Math.min(MAX_STEP_DURATION, Math.max(MIN_STEP_DURATION, seconds));
+  }
+
+  /**
+   * Linear indices of every voxel a ball can occupy: seeded at the inlets and
+   * following `downstream`, stopping at outlet voxels (update() removes a ball on
+   * arrival, so it never departs one) and tracking visited cells because the
+   * data contains cyclic downstream pointers.
+   */
+  private collectReachable(): number[] {
+    const total = this.grid.nx * this.grid.ny * this.grid.nz;
+    const visited = new Uint8Array(total);
+    const reachable: number[] = [];
+    const stack: number[] = [];
+    for (const idx of this.inletIndices) {
+      if (visited[idx]) continue;
+      visited[idx] = 1;
+      reachable.push(idx);
+      stack.push(idx);
+    }
+    while (stack.length > 0) {
+      const idx = stack.pop()!;
+      if (this.grid.isExitIndex(idx)) continue;
+      const next = this.grid.getDownstreamFromIndex(idx);
+      if (next < 0 || next >= total || visited[next]) continue;
+      visited[next] = 1;
+      reachable.push(next);
+      stack.push(next);
+    }
+    return reachable;
+  }
+
+  /**
+   * Physical transit through this data is ~19 years per voxel, so derive the
+   * divisor from the data rather than a magic constant: the median velocity over
+   * the reachable set crosses one voxel in REFERENCE_STEP_DURATION seconds.
+   *
+   * Calibrating over the reachable set rather than all saturated voxels matters:
+   * the latter also contains zero-velocity cells and velocities orders of
+   * magnitude lower that no ball ever visits, and the whole-grid median lands on
+   * the 0.01 placeholder carried by unsaturated cells.
+   */
+  private computeTimeScale(): number {
+    const samples: number[] = [];
+    for (const idx of this.collectReachable()) {
+      const v = this.grid.getVelocityFromIndex(idx);
+      if (v > 0) samples.push(v);
+    }
+    // No usable velocities (e.g. the generated sample grid): degrade to a scale
+    // where a v == 1 cell takes exactly REFERENCE_STEP_DURATION.
+    if (samples.length === 0) return this.grid.voxelSize / REFERENCE_STEP_DURATION;
+    samples.sort((a, b) => a - b);
+    const mid = samples.length >> 1;
+    const vRef = samples.length % 2 === 1
+      ? samples[mid]
+      : (samples[mid - 1] + samples[mid]) * 0.5;
+    return (this.grid.voxelSize / vRef) / REFERENCE_STEP_DURATION;
   }
 
   /** Restart the flow animation and reset all outlet pass counters. */
   reset(): void {
     this.balls = [];
-    this.occupancy.fill(0);
+    // timeScale is a grid-invariant calibration and is deliberately not recomputed.
+    // Seed a full interval so the first ball appears immediately rather than
+    // after a SPAWN_INTERVAL gap.
+    this.spawnAccum.fill(SPAWN_INTERVAL);
 
     for (const counter of this.outletCounters.values()) {
       counter.count = 0;
       this.drawOutletCounter(counter);
     }
 
-    this.spawnAtEmptyInlets();
+    this.spawnAtInlets(0);
     this.writeMatrices();
   }
 
@@ -228,22 +367,34 @@ export class InletFlowRenderer {
     counter.texture.needsUpdate = true;
   }
 
-  private spawnAtEmptyInlets(): void {
-    for (const idx of this.inletIndices) {
-      if (this.occupancy[idx] !== 0) continue;
-      if (this.balls.length >= this.capacity) return;
-      const fromPos = this.worldPosForIndex(idx);
-      const next = this.grid.getDownstreamFromIndex(idx);
-      const ball: Ball = {
-        fromIdx: idx,
-        toIdx: next >= 0 ? next : idx,
-        t: 0,
-        steps: 0,
-        fromPos,
-        toPos: next >= 0 ? this.worldPosForIndex(next) : fromPos.clone(),
-      };
-      this.balls.push(ball);
-      this.occupancy[idx] = 1;
+  /**
+   * Spawn on a fixed per-inlet clock, independent of local velocity. Uniform
+   * spawn timing combined with velocity-driven travel means balls bunch up in
+   * slow stretches and stretch apart in fast ones: spacing along a segment is
+   * `stepDuration / SPAWN_INTERVAL` balls, evenly distributed, so they never
+   * overlap and local density ends up inversely proportional to speed.
+   */
+  private spawnAtInlets(dt: number): void {
+    for (let k = 0; k < this.inletIndices.length; k++) {
+      this.spawnAccum[k] += dt;
+      while (this.spawnAccum[k] >= SPAWN_INTERVAL) {
+        this.spawnAccum[k] -= SPAWN_INTERVAL;
+        if (this.balls.length >= this.capacity) return;
+        const idx = this.inletIndices[k];
+        const next = this.grid.getDownstreamFromIndex(idx);
+        if (next < 0) break;  // inlet with no downstream: nothing to flow into
+        const fromPos = this.worldPosForIndex(idx);
+        const toPos = this.worldPosForIndex(next);
+        this.balls.push({
+          fromIdx: idx,
+          toIdx: next,
+          t: 0,
+          steps: 0,
+          stepDuration: this.stepDurationFor(idx, next, fromPos, toPos),
+          fromPos,
+          toPos,
+        });
+      }
     }
   }
 

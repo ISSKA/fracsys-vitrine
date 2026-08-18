@@ -80,6 +80,17 @@ export class VoxelGrid {
     return this.velocity[this.index(x, y, z)];
   }
 
+  /**
+   * Velocity at a linear index. Unlike getVelocity() this bounds-checks, because
+   * callers divide by the result: an out-of-range read on a Float32Array yields
+   * `undefined`, which would silently propagate as NaN. Returning 0 funnels the
+   * bad case into the same guard as a genuine zero-velocity cell.
+   */
+  getVelocityFromIndex(idx: number): number {
+    if (idx < 0 || idx >= this.velocity.length) return 0;
+    return this.velocity[idx];
+  }
+
   getDownstream(x: number, y: number, z: number): number {
     if (!this.isInBounds(x, y, z)) return -1;
     return this.downstreamArr[this.index(x, y, z)];

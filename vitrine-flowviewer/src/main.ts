@@ -25,6 +25,7 @@ const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const btnPlayPause = document.getElementById('btn-play-pause') as HTMLButtonElement;
 const btnReset = document.getElementById('btn-reset') as HTMLButtonElement;
 const speedSlider = document.getElementById('speed-slider') as HTMLInputElement;
+const speedValue = document.getElementById('speed-value') as HTMLSpanElement;
 const tickCounter = document.getElementById('tick-counter') as HTMLSpanElement;
 
 btnPlayPause.disabled = true;
@@ -32,6 +33,24 @@ btnReset.disabled = true;
 speedSlider.disabled = true;
 
 let isPaused = false;
+
+/**
+ * Global time multiplier from the speed slider. Scales the dt handed to the flow
+ * renderer, so travel speed and inlet spawn rate stay in step and the per-voxel
+ * velocity differences are preserved.
+ */
+let speedMultiplier = parseFloat(speedSlider.value) || 1;
+
+function updateSpeedLabel(): void {
+  speedValue.textContent = `${speedMultiplier.toFixed(2)}×`;
+}
+updateSpeedLabel();
+
+// `input`, not `change`: `change` only fires on release, which feels broken.
+speedSlider.addEventListener('input', () => {
+  speedMultiplier = parseFloat(speedSlider.value) || 1;
+  updateSpeedLabel();
+});
 
 function updatePlayPauseButton(): void {
   btnPlayPause.textContent = isPaused ? 'Resume' : 'Pause';
@@ -71,6 +90,7 @@ function loadGrid(data: GridData): void {
   btnPlayPause.disabled = false;
   updatePlayPauseButton();
   btnReset.disabled = false;
+  speedSlider.disabled = false;
 
   const center = grid.getCenter();
   const radius = grid.getRadius();
@@ -101,7 +121,7 @@ function animate(): void {
   const now = performance.now();
   const dt = Math.min(0.1, (now - lastTime) / 1000);  // cap dt at 100ms to avoid huge jumps after tab-switch
   lastTime = now;
-  if (inletFlow && !isPaused) inletFlow.update(dt);
+  if (inletFlow && !isPaused) inletFlow.update(dt * speedMultiplier);
   scene.render();
 }
 

@@ -44,6 +44,8 @@ canvas { display: block; }
 #ui h4 a:hover { color: #1b5e20; }
 #ui label { cursor: default; display: flex; align-items: center; gap: 4px; }
 #speed-slider { width: 80px; }
+/* Fixed width + tabular digits so the label doesn't reflow as the value changes. */
+#speed-value { min-width: 42px; font-variant-numeric: tabular-nums; }
 #legend {
   position: absolute;
   bottom: 12px;
