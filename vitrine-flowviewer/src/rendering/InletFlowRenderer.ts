@@ -123,6 +123,12 @@ export class InletFlowRenderer {
     const sphereGeo = new THREE.SphereGeometry(grid.voxelSize * 0.25, 8, 8);
     const sphereMat = new THREE.MeshBasicMaterial({ color: 0x4488ff });
     this.mesh = new THREE.InstancedMesh(sphereGeo, sphereMat, this.capacity);
+    // Instance transforms move every frame, while Three.js does not keep the
+    // InstancedMesh bounds in sync automatically. Stale aggregate bounds can
+    // therefore cull the whole stream when the camera is zoomed in, even when
+    // individual balls are visible. The stream spans the grid and must always
+    // be submitted; normal depth clipping still applies per ball.
+    this.mesh.frustumCulled = false;
     this.mesh.count = 0;
     this.group.add(this.mesh);
 
