@@ -142,6 +142,11 @@ export class InletFlowRenderer {
     scene.add(this.group);
   }
 
+  /** Show or hide the moving balls without pausing their simulation. */
+  setParticlesVisible(visible: boolean): void {
+    if (this.mesh) this.mesh.visible = visible;
+  }
+
   /** Show or hide the outlet particle-count labels without resetting their totals. */
   setParticleCounterVisible(visible: boolean): void {
     for (const counter of this.outletCounters.values()) {

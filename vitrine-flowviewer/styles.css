@@ -52,6 +52,7 @@ canvas { display: block; }
 
 #speed-slider { width: 80px; }
 #speed-value { min-width: 42px; font-variant-numeric: tabular-nums; }
+.display-toggle,
 .particle-counter-control { padding: 4px; }
 
 #legend {

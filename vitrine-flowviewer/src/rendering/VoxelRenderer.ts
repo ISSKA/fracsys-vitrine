@@ -164,6 +164,11 @@ export class VoxelRenderer {
     scene.add(this.group);
   }
 
+  /** Show or hide all voxel wireframes, including inlet and outflow markers. */
+  setVisible(visible: boolean): void {
+    this.group.visible = visible;
+  }
+
   removeFromScene(scene: THREE.Scene): void {
     scene.remove(this.group);
     this.dispose();
