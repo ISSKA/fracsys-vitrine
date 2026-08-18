@@ -26,6 +26,7 @@ const btnPlayPause = document.getElementById('btn-play-pause') as HTMLButtonElem
 const btnReset = document.getElementById('btn-reset') as HTMLButtonElement;
 const speedSlider = document.getElementById('speed-slider') as HTMLInputElement;
 const speedValue = document.getElementById('speed-value') as HTMLSpanElement;
+const particleCounterToggle = document.getElementById('particle-counter-toggle') as HTMLInputElement;
 const tickCounter = document.getElementById('tick-counter') as HTMLSpanElement;
 
 btnPlayPause.disabled = true;
@@ -50,6 +51,10 @@ updateSpeedLabel();
 speedSlider.addEventListener('input', () => {
   speedMultiplier = parseFloat(speedSlider.value) || 1;
   updateSpeedLabel();
+});
+
+particleCounterToggle.addEventListener('change', () => {
+  inletFlow?.setParticleCounterVisible(particleCounterToggle.checked);
 });
 
 function updatePlayPauseButton(): void {
@@ -85,6 +90,7 @@ function loadGrid(data: GridData): void {
   voxelRenderer.addToScene(scene.scene);
 
   inletFlow = new InletFlowRenderer(grid);
+  inletFlow.setParticleCounterVisible(particleCounterToggle.checked);
   inletFlow.addToScene(scene.scene);
   isPaused = false;
   btnPlayPause.disabled = false;

@@ -142,6 +142,13 @@ export class InletFlowRenderer {
     scene.add(this.group);
   }
 
+  /** Show or hide the outlet particle-count labels without resetting their totals. */
+  setParticleCounterVisible(visible: boolean): void {
+    for (const counter of this.outletCounters.values()) {
+      counter.sprite.visible = visible;
+    }
+  }
+
   removeFromScene(scene: THREE.Scene): void {
     scene.remove(this.group);
     this.dispose();
