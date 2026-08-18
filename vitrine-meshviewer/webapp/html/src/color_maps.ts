@@ -13,15 +13,40 @@ export type ColorMap = ColorMapStop[];
 // ============================================================================
 
 /**
- * Converts a ColorMap to a CSS linear-gradient string (bottom = min, top = max),
- * suitable for use as a scalar bar gradient background.
+ * Converts a ColorMap to an eight-band CSS linear-gradient string
+ * (bottom = min, top = max), suitable for use as a scalar bar background.
  */
 export function colorMapToCss(colorMap: ColorMap): string {
-  const stops = colorMap
-    .map(([t, r, g, b]) =>
-      `rgb(${Math.round(r * 255)},${Math.round(g * 255)},${Math.round(b * 255)}) ${(t * 100).toFixed(0)}%`
-    )
-    .join(', ');
+  const numberOfBands = 8;
+  const sampleColor = (t: number): [number, number, number] => {
+    const upperIndex = colorMap.findIndex(([position]) => position >= t);
+
+    if (upperIndex <= 0) {
+      return colorMap[0].slice(1) as [number, number, number];
+    }
+    if (upperIndex === -1) {
+      return colorMap[colorMap.length - 1].slice(1) as [number, number, number];
+    }
+
+    const [lowerT, lowerR, lowerG, lowerB] = colorMap[upperIndex - 1];
+    const [upperT, upperR, upperG, upperB] = colorMap[upperIndex];
+    const fraction = (t - lowerT) / (upperT - lowerT);
+    return [
+      lowerR + fraction * (upperR - lowerR),
+      lowerG + fraction * (upperG - lowerG),
+      lowerB + fraction * (upperB - lowerB),
+    ];
+  };
+
+  const stops = Array.from({ length: numberOfBands }, (_, index) => {
+    const t = index / (numberOfBands - 1);
+    const [r, g, b] = sampleColor(t);
+    const color = `rgb(${Math.round(r * 255)},${Math.round(g * 255)},${Math.round(b * 255)})`;
+    const start = (index / numberOfBands) * 100;
+    const end = ((index + 1) / numberOfBands) * 100;
+    return `${color} ${start}%, ${color} ${end}%`;
+  }).join(', ');
+
   return `linear-gradient(to top, ${stops})`;
 }
 
