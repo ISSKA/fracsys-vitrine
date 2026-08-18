@@ -15,9 +15,14 @@
       <!-- <button id="btn-load-csv">Load CSV</button>
       <input id="csv-file-input" type="file" accept=".csv,.txt" style="display:none" /> -->
       <label>Speed <input id="speed-slider" type="range" min="0.25" max="4" step="0.25" value="1" /><span id="speed-value">1.00&times;</span></label>
-      <label class="display-toggle"><input id="voxels-toggle" type="checkbox" checked /> Voxels</label>
-      <label class="display-toggle"><input id="particles-toggle" type="checkbox" checked /> Particles</label>
-      <label class="particle-counter-control"><input id="particle-counter-toggle" type="checkbox" checked /> Particle counter</label>
+      <div id="layerControls">
+        <h4 id="layerControlsToggle" class="collapsible-toggle">Select layers to display</h4>
+        <div id="layerCheckboxes">
+          <label class="display-toggle"><input id="voxels-toggle" type="checkbox" checked /> Voxels</label>
+          <label class="display-toggle"><input id="particles-toggle" type="checkbox" checked /> Particles</label>
+          <label class="particle-counter-control"><input id="particle-counter-toggle" type="checkbox" checked /> Particle counter</label>
+        </div>
+      </div>
       <span id="tick-counter">Tick: 0</span>
     </div>
     <div id="legend">

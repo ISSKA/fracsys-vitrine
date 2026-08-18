@@ -30,6 +30,8 @@ const voxelsToggle = document.getElementById('voxels-toggle') as HTMLInputElemen
 const particlesToggle = document.getElementById('particles-toggle') as HTMLInputElement;
 const particleCounterToggle = document.getElementById('particle-counter-toggle') as HTMLInputElement;
 const tickCounter = document.getElementById('tick-counter') as HTMLSpanElement;
+const layerControlsToggle = document.getElementById('layerControlsToggle') as HTMLHeadingElement;
+const layerCheckboxes = document.getElementById('layerCheckboxes') as HTMLDivElement;
 
 btnPlayPause.disabled = true;
 btnReset.disabled = true;
@@ -65,6 +67,11 @@ voxelsToggle.addEventListener('change', () => {
 
 particlesToggle.addEventListener('change', () => {
   inletFlow?.setParticlesVisible(particlesToggle.checked);
+});
+
+layerControlsToggle.addEventListener('click', () => {
+  layerControlsToggle.classList.toggle('collapsed');
+  layerCheckboxes.classList.toggle('collapsed');
 });
 
 function updatePlayPauseButton(): void {
