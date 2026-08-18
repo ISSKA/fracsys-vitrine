@@ -105,4 +105,4 @@ A default grid (`public/data/damage_zone.csv`) is loaded automatically on startu
 - Permeability determines the probability of entering a voxel: 0.0 = blocked, 1.0 = always enters
 - Particles that fail to move for 50 consecutive ticks are marked as **pooling** (rendered in magenta); flowing particles are blue
 - A small number of voxels in the bottom layer are marked as **exit voxels** (rendered in orange); particles that enter an exit voxel leave the mesh and are removed
-- Wireframe colors indicate permeability: dark gray = low, near-white = high (see the colorbar on the right edge)
+- Wireframe colors indicate permeability: dark gray = low, near-white = high (see the colourbar below the legend on the left)
