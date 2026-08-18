@@ -19,9 +19,19 @@
     <div id="legend">
       <div class="legend-item"><span class="swatch" style="background:#ffffff"></span>Inlet</div>
       <div class="legend-item"><span class="swatch" style="background:#ff0000"></span>Outflow</div>
-      <div class="legend-item"><span class="swatch swatch-gradient"></span>Saturated — velocity (log colour scale)</div>
       <div class="legend-item">Ball speed &prop; velocity (linear)</div>
-      <div class="legend-item"><span class="swatch" style="background:#cccccc"></span>Voxel</div>
+    </div>
+    <div id="velocity-legend" aria-label="Saturated velocity colour scale">
+      <div class="velocity-legend-title">Saturated</div>
+      <div class="velocity-legend-scale">
+        <div class="velocity-legend-gradient"></div>
+        <div class="velocity-legend-labels">
+          <span>High</span>
+          <span>Velocity</span>
+          <span>Low</span>
+        </div>
+      </div>
+      <div class="velocity-legend-note">log scale</div>
     </div>
     <canvas id="canvas"></canvas>
     <div id="mobile-warning" hidden>
