@@ -74,6 +74,85 @@ body.mesh-viewer {
     background: #cccccc;
 }
 
+#dataset-selector {
+    margin: 10px 5px 12px;
+}
+
+.dataset-selector-label {
+    display: block;
+    margin-bottom: 6px;
+    color: #333;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.dataset-options {
+    display: flex;
+}
+
+#dataset-selector .dataset-option {
+    margin: 0;
+    padding: 8px 10px;
+    border: 1px solid #4CAF50;
+    border-radius: 0;
+    background: #fff;
+    color: #287a2c;
+    font-weight: 600;
+}
+
+#dataset-selector .dataset-option:first-child {
+    border-radius: 4px 0 0 4px;
+}
+
+#dataset-selector .dataset-option:last-child {
+    margin-left: -1px;
+    border-radius: 0 4px 4px 0;
+}
+
+#dataset-selector .dataset-option:hover:not(:disabled):not([aria-pressed='true']) {
+    background: #edf7ee;
+}
+
+#dataset-selector .dataset-option[aria-pressed='true'] {
+    position: relative;
+    z-index: 1;
+    background: #4CAF50;
+    color: #fff;
+}
+
+#dataset-selector .dataset-option[aria-pressed='true']::before {
+    content: '✓ ';
+}
+
+#dataset-selector .dataset-option:disabled {
+    border-color: #9bc99d;
+    background: #f5f5f5;
+    color: #777;
+    cursor: wait;
+    opacity: 0.75;
+}
+
+#dataset-status {
+    min-height: 16px;
+    margin-top: 7px;
+    color: #555;
+    font-size: 12px;
+    line-height: 16px;
+}
+
+#dataset-status.is-loading::before {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 6px;
+    border: 2px solid #b7d9b9;
+    border-top-color: #4CAF50;
+    border-radius: 50%;
+    vertical-align: -2px;
+    animation: spin 0.8s linear infinite;
+}
+
 #download-progress {
     position: fixed;
     top: 50%;

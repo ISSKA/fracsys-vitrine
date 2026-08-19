@@ -11,8 +11,14 @@
     <button id="background-toggle" type="button" aria-label="Switch to black background" title="Switch to black background">☾</button>
     <div id="controls">
         <h4>Mesh Viewer / <a href="./flow/">Flow Viewer</a></h4>
-        <button id="btn-fracture-zone">Fracture Zone</button><br>
-        <button id="btn-damage-zone">Damage Zone</button><br>
+        <div id="dataset-selector" role="group" aria-label="Displayed dataset">
+            <span class="dataset-selector-label">Dataset</span>
+            <div class="dataset-options">
+                <button id="btn-fracture-zone" class="dataset-option" type="button" aria-pressed="false">Fracture Zone</button>
+                <button id="btn-damage-zone" class="dataset-option" type="button" aria-pressed="false">Damage Zone</button>
+            </div>
+            <div id="dataset-status" role="status" aria-live="polite"></div>
+        </div>
         <div id="damageZoneModelControls" style="margin-top: 10px; margin-bottom: 15px; display: none;">
             <div>
                 <input type="radio" id="damage-zone-model-optimized" name="damage-zone-model" value="optimized" checked>

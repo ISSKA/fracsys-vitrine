@@ -324,12 +324,62 @@ initializeDamageZoneLoader({ renderer, renderWindow, fileLoader });
 // Wire up the control buttons. These used to be inline onclick attributes, which
 // a Content-Security-Policy without 'unsafe-inline' blocks. The window.* functions
 // are resolved at click time, exactly as the attributes did.
-document.getElementById('btn-fracture-zone')?.addEventListener('click', () => window.showFractureZone?.());
-document.getElementById('btn-damage-zone')?.addEventListener('click', () => window.showDamageZone?.());
+type Dataset = 'fracture' | 'damage';
+
+const fractureZoneButton = document.getElementById('btn-fracture-zone') as HTMLButtonElement | null;
+const damageZoneButton = document.getElementById('btn-damage-zone') as HTMLButtonElement | null;
+const datasetSelector = document.getElementById('dataset-selector');
+const datasetStatus = document.getElementById('dataset-status');
+let displayedDataset: Dataset | null = null;
+
+function datasetLabel(dataset: Dataset): string {
+  return dataset === 'fracture' ? 'Fracture Zone' : 'Damage Zone';
+}
+
+function setDisplayedDataset(dataset: Dataset | null): void {
+  displayedDataset = dataset;
+  fractureZoneButton?.setAttribute('aria-pressed', String(dataset === 'fracture'));
+  damageZoneButton?.setAttribute('aria-pressed', String(dataset === 'damage'));
+}
+
+function setDatasetControlsLoading(isLoading: boolean): void {
+  if (fractureZoneButton) fractureZoneButton.disabled = isLoading;
+  if (damageZoneButton) damageZoneButton.disabled = isLoading;
+  datasetSelector?.setAttribute('aria-busy', String(isLoading));
+  datasetStatus?.classList.toggle('is-loading', isLoading);
+}
+
+async function displayDataset(dataset: Dataset): Promise<void> {
+  if (dataset === displayedDataset) return;
+
+  setDisplayedDataset(null);
+  setDatasetControlsLoading(true);
+  if (datasetStatus) datasetStatus.textContent = `Loading ${datasetLabel(dataset)}…`;
+
+  let loaded = false;
+  try {
+    loaded = await (dataset === 'fracture'
+      ? window.showFractureZone?.()
+      : window.showDamageZone?.()) ?? false;
+  } catch (error) {
+    console.error(`Failed to display ${datasetLabel(dataset)}:`, error);
+  }
+
+  setDatasetControlsLoading(false);
+  if (loaded) {
+    setDisplayedDataset(dataset);
+    if (datasetStatus) datasetStatus.textContent = `Showing: ${datasetLabel(dataset)}`;
+  } else if (datasetStatus) {
+    datasetStatus.textContent = `Could not load ${datasetLabel(dataset)}. Select a dataset to retry.`;
+  }
+}
+
+fractureZoneButton?.addEventListener('click', () => void displayDataset('fracture'));
+damageZoneButton?.addEventListener('click', () => void displayDataset('damage'));
 document.getElementById('btn-reset-camera')?.addEventListener('click', () => window.resetCamera?.());
 document.getElementById('btn-toggle-wireframe')?.addEventListener('click', () => window.toggleWireframe?.());
 
 // Load the default dataset immediately so the viewer is populated on startup.
-window.showFractureZone?.();
+void displayDataset('fracture');
 
 // File input listener is set up in fracture_zone_loader.ts

@@ -36,7 +36,7 @@ export interface FileLoaderAPI {
   layers: Layers;
   LAYERS: readonly LayerConfig[];
   handleFileSelect: (event: Event) => void;
-  downloadAllLayersFromCloud: () => Promise<void>;
+  downloadAllLayersFromCloud: () => Promise<boolean>;
   setLayerVisibility: (layerId: string, visible: boolean) => void;
   getLayerVisibility: (layerId: string) => boolean;
   getAllSources: () => any[];
@@ -298,7 +298,7 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     }
   }
 
-  async function downloadAllLayersFromCloud(): Promise<void> {
+  async function downloadAllLayersFromCloud(): Promise<boolean> {
     try {
       // Download all layers in parallel
       await Promise.all(
@@ -312,10 +312,12 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
       renderWindow.render();
 
       console.log('All layers loaded successfully');
+      return true;
     } catch (error) {
       console.error('Error downloading layers from cloud:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       alert(`Failed to download model from cloud: ${errorMessage}`);
+      return false;
     }
   }
 

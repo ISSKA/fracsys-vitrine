@@ -61,7 +61,7 @@ function getScalarBarTopPx(): number {
 /**
  * Shows the fracture zone and displays layer controls
  */
-export function showFractureZone(): void {
+export async function showFractureZone(): Promise<boolean> {
   activeZone = 'fracture';
 
   const layerControls = document.getElementById('layerControls');
@@ -70,7 +70,7 @@ export function showFractureZone(): void {
   }
   setDamageZoneModelControlsVisibility(false);
 
-  if (!deps) return;
+  if (!deps) return false;
 
   hideActiveDamageZoneModel();
 
@@ -83,17 +83,18 @@ export function showFractureZone(): void {
     deps.fileLoader.setScalarBarsVisible(true);
     deps.renderer.resetCamera();
     deps.renderWindow.render();
+    return true;
   } else {
-    deps.fileLoader.downloadAllLayersFromCloud();
+    return deps.fileLoader.downloadAllLayersFromCloud();
   }
 }
 
 /**
  * Shows the damage zone and hides layer controls
  */
-export async function showDamageZone(): Promise<void> {
+export async function showDamageZone(): Promise<boolean> {
   activeZone = 'damage';
-  if (!deps) return;
+  if (!deps) return false;
 
   const layerControls = document.getElementById('layerControls');
   if (layerControls) {
@@ -116,7 +117,7 @@ export async function showDamageZone(): Promise<void> {
       console.error('Error loading damage zone:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       alert(`Failed to load damage zone: ${errorMessage}`);
-      return;
+      return false;
     }
     setProgressLabel('Rendering\u2026');
   } else if (damageZoneActor) {
@@ -127,6 +128,7 @@ export async function showDamageZone(): Promise<void> {
   deps.renderer.resetCamera();
   deps.renderWindow.render();
   hideProgress();
+  return true;
 }
 
 // ============================================================================
