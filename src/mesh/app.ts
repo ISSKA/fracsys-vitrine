@@ -329,4 +329,7 @@ document.getElementById('btn-damage-zone')?.addEventListener('click', () => wind
 document.getElementById('btn-reset-camera')?.addEventListener('click', () => window.resetCamera?.());
 document.getElementById('btn-toggle-wireframe')?.addEventListener('click', () => window.toggleWireframe?.());
 
+// Load the default dataset immediately so the viewer is populated on startup.
+window.showFractureZone?.();
+
 // File input listener is set up in fracture_zone_loader.ts
