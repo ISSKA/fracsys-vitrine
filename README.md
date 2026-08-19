@@ -1,6 +1,6 @@
 # FracSYS Vitrine
 
-FracSYS Vitrine brings together two browser-based 3D applications for exploring FracSYS models and flow results. Each project is self-contained and can be developed or deployed independently.
+FracSYS Vitrine brings together two browser-based 3D applications for exploring FracSYS models and flow results. The viewers share one npm toolchain and lockfile, while retaining separate development and build commands.
 
 ## Projects
 
@@ -11,21 +11,23 @@ FracSYS Vitrine brings together two browser-based 3D applications for exploring 
 
 ## Prerequisites
 
-- Node.js 18 or later
+- Node.js 20.19 or later
 - npm
 - Docker or Podman (optional)
 - Python 3.12+, AWS CLI, and AWS CDK CLI (only for the mesh viewer's AWS infrastructure)
 
 ## Quick start
 
-Clone the repository, then run either application from its own directory.
+Install the shared toolchain once from the repository root, then run either viewer.
+
+```bash
+npm install
+```
 
 ### Mesh viewer
 
 ```bash
-cd vitrine-meshviewer
-npm install
-npm run dev
+npm run dev:mesh
 ```
 
 Open <http://localhost:3000>.
@@ -33,8 +35,8 @@ Open <http://localhost:3000>.
 To create and serve a production build with Docker:
 
 ```bash
-npm run build
-docker compose up -d
+npm run build:mesh
+docker compose -f vitrine-meshviewer/docker-compose.yaml up -d
 ```
 
 The Docker deployment is available at <http://localhost:8080>.
@@ -44,9 +46,7 @@ See the [mesh viewer documentation](./vitrine-meshviewer/README.md) for controls
 ### Flow viewer
 
 ```bash
-cd vitrine-flowviewer
-npm install
-npm run dev
+npm run dev:flow
 ```
 
 Open the URL printed by Vite, normally <http://localhost:5173>.
@@ -54,7 +54,7 @@ Open the URL printed by Vite, normally <http://localhost:5173>.
 To build and run the production container:
 
 ```bash
-docker compose up --build
+docker compose -f vitrine-flowviewer/docker-compose.yml up --build
 ```
 
 The Docker deployment is available at <http://localhost:8080>.
@@ -67,6 +67,7 @@ The viewer uses a generated sample grid when no default CSV is present. To use p
 
 ```text
 fracsys-vitrine/
+├── package.json          # Shared Vite/TypeScript toolchain and workspace commands
 ├── vitrine-meshviewer/   # Mesh visualization app and AWS infrastructure
 └── vitrine-flowviewer/   # Voxel-grid particle-flow simulator
 ```
@@ -74,11 +75,6 @@ fracsys-vitrine/
 ## Production builds
 
 ```bash
-cd vitrine-meshviewer
-npm install
-npm run build
-
-cd ../vitrine-flowviewer
 npm install
 npm run build
 ```
@@ -89,7 +85,7 @@ Build output is generated in each application's `dist/` directory.
 
 # FracSYS Vitrine — Français
 
-FracSYS Vitrine rassemble deux applications 3D accessibles dans un navigateur pour explorer les modèles et les résultats d'écoulement FracSYS. Chaque projet est autonome et peut être développé ou déployé indépendamment.
+FracSYS Vitrine rassemble deux applications 3D accessibles dans un navigateur pour explorer les modèles et les résultats d'écoulement FracSYS. Les visionneuses partagent une seule chaîne d'outils npm et un seul fichier de verrouillage, tout en conservant des commandes de développement et de construction distinctes.
 
 ## Projets
 
@@ -100,21 +96,23 @@ FracSYS Vitrine rassemble deux applications 3D accessibles dans un navigateur po
 
 ## Prérequis
 
-- Node.js 18 ou version ultérieure
+- Node.js 20.19 ou version ultérieure
 - npm
 - Docker ou Podman (facultatif)
 - Python 3.12 ou version ultérieure, AWS CLI et AWS CDK CLI (uniquement pour l'infrastructure AWS de la visionneuse de maillages)
 
 ## Démarrage rapide
 
-Clonez le dépôt, puis lancez l'une des applications depuis son propre répertoire.
+Installez une seule fois la chaîne d'outils partagée depuis la racine du dépôt, puis lancez la visionneuse souhaitée.
+
+```bash
+npm install
+```
 
 ### Visionneuse de maillages
 
 ```bash
-cd vitrine-meshviewer
-npm install
-npm run dev
+npm run dev:mesh
 ```
 
 Ouvrez <http://localhost:3000>.
@@ -122,8 +120,8 @@ Ouvrez <http://localhost:3000>.
 Pour créer une version de production et la servir avec Docker :
 
 ```bash
-npm run build
-docker compose up -d
+npm run build:mesh
+docker compose -f vitrine-meshviewer/docker-compose.yaml up -d
 ```
 
 Le déploiement Docker est accessible à l'adresse <http://localhost:8080>.
@@ -133,9 +131,7 @@ Consultez la [documentation de la visionneuse de maillages](./vitrine-meshviewer
 ### Visionneuse d'écoulement
 
 ```bash
-cd vitrine-flowviewer
-npm install
-npm run dev
+npm run dev:flow
 ```
 
 Ouvrez l'URL affichée par Vite, généralement <http://localhost:5173>.
@@ -143,7 +139,7 @@ Ouvrez l'URL affichée par Vite, généralement <http://localhost:5173>.
 Pour construire et lancer le conteneur de production :
 
 ```bash
-docker compose up --build
+docker compose -f vitrine-flowviewer/docker-compose.yml up --build
 ```
 
 Le déploiement Docker est accessible à l'adresse <http://localhost:8080>.
@@ -156,6 +152,7 @@ La visionneuse utilise une grille d'exemple générée lorsqu'aucun fichier CSV 
 
 ```text
 fracsys-vitrine/
+├── package.json          # Chaîne Vite/TypeScript et commandes partagées
 ├── vitrine-meshviewer/   # Application de visualisation des maillages et infrastructure AWS
 └── vitrine-flowviewer/   # Simulateur d'écoulement de particules sur une grille de voxels
 ```
@@ -163,11 +160,6 @@ fracsys-vitrine/
 ## Versions de production
 
 ```bash
-cd vitrine-meshviewer
-npm install
-npm run build
-
-cd ../vitrine-flowviewer
 npm install
 npm run build
 ```

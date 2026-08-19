@@ -6,13 +6,15 @@ A browser-based 3D simulation of water particle flow through a porous voxel grid
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v18 or later)
+- [Node.js](https://nodejs.org/) (v20.19 or later)
 
 ### Install and Run
 
+Run these commands from the repository root:
+
 ```bash
 npm install
-npm run dev
+npm run dev:flow
 ```
 
 Open the URL shown in the terminal (typically `http://localhost:5173/`).
@@ -20,8 +22,8 @@ Open the URL shown in the terminal (typically `http://localhost:5173/`).
 ### Build for Production
 
 ```bash
-npm run build
-npm run preview
+npm run build:flow
+npm run preview:flow
 ```
 
 ### Run with Docker
@@ -42,7 +44,7 @@ docker compose up dev
 Without compose:
 
 ```bash
-docker build -t fracsys-flowviewer .
+docker build -f vitrine-flowviewer/Dockerfile -t fracsys-flowviewer .
 docker run --rm -p 8080:80 fracsys-flowviewer
 ```
 

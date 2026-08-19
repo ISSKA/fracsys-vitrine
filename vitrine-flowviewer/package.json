@@ -1,12 +1,14 @@
 {
-  "name": "fracsys-watersimulator-restart",
+  "name": "fracsys-flowviewer",
   "version": "1.0.0",
   "description": "",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build:preview": "tsc && vite build --base=/preview/",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "papaparse": "^5.5.3",
@@ -14,8 +16,6 @@
   },
   "devDependencies": {
     "@types/papaparse": "^5.5.2",
-    "@types/three": "^0.184.0",
-    "typescript": "^6.0.3",
-    "vite": "^8.0.8"
+    "@types/three": "^0.184.0"
   }
 }

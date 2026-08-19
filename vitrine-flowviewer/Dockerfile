@@ -14,16 +14,18 @@ ENV DEPLOY_BASE=$DEPLOY_BASE \
 
 # Dependencies first so edits to src/ do not invalidate the install layer.
 COPY package.json package-lock.json ./
+COPY vitrine-flowviewer/package.json ./vitrine-flowviewer/package.json
+COPY vitrine-meshviewer/webapp/html/package.json ./vitrine-meshviewer/webapp/html/package.json
 RUN npm ci
 
-COPY . .
-RUN npm run build
+COPY vitrine-flowviewer ./vitrine-flowviewer
+RUN npm run build:flow
 
 # ---- serve ----------------------------------------------------------------
 FROM nginx:1.29-alpine AS runtime
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html
+COPY vitrine-flowviewer/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/vitrine-flowviewer/dist /usr/share/nginx/html
 
 EXPOSE 80
 

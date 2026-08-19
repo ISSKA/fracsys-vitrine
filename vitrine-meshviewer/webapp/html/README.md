@@ -25,13 +25,13 @@ webapp/html/
 
 ### Prerequisites
 
-- Node.js (v18 or higher recommended)
+- Node.js (v20.19 or higher)
 - npm
 
 ### Installation
 
 ```bash
-cd webapp/html
+# From the repository root
 npm install
 ```
 
@@ -40,7 +40,7 @@ npm install
 ### Development Server
 
 ```bash
-npm run dev
+npm run dev:mesh
 ```
 
 The app will be available at `http://localhost:3000`.
@@ -48,13 +48,13 @@ The app will be available at `http://localhost:3000`.
 ### Type Checking
 
 ```bash
-npm run type-check
+npm run type-check:mesh
 ```
 
 ## Production Build
 
 ```bash
-npm run build
+npm run build:mesh
 ```
 
 Built files are written to `webapp/html/dist/`.
@@ -62,20 +62,18 @@ Built files are written to `webapp/html/dist/`.
 ### Preview Production Build
 
 ```bash
-npm run preview
+npm run preview:mesh
 ```
 
 ## Docker Deployment
 
 ```bash
 # Build the TypeScript app
-cd webapp/html
 npm install
-npm run build
+npm run build:mesh
 
 # Start Docker container (from project root)
-cd ../..
-docker-compose up -d
+docker compose -f vitrine-meshviewer/docker-compose.yaml up -d
 ```
 
 The application will be available at `http://localhost:8080`.
@@ -95,16 +93,16 @@ The Docker container serves files from `webapp/html/dist/` on port 80.
 
 ## Technology Stack
 
-- **TypeScript 5.3+** — type-safe JavaScript
+- **TypeScript 6** — shared type-checking toolchain
 - **VTK.js 30+** — 3D visualization library
-- **Vite 5** — build tool and dev server
+- **Vite 8** — shared build tool and dev server
 - **Docker / Apache httpd** — containerized deployment
 
 ## Scripts Reference
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run preview` | Preview production build |
-| `npm run type-check` | Check types without emitting |
+| `npm run dev:mesh` | Start the mesh development server |
+| `npm run build:mesh` | Build the mesh viewer for production |
+| `npm run preview:mesh` | Preview the mesh production build |
+| `npm run type-check:mesh` | Check mesh types without emitting |

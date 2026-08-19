@@ -1,0 +1,31 @@
+{
+  "name": "fracsys-vitrine",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "vitrine-meshviewer/webapp/html",
+    "vitrine-flowviewer"
+  ],
+  "scripts": {
+    "dev:mesh": "npm run dev --workspace=meshing-webapp",
+    "dev:flow": "npm run dev --workspace=fracsys-flowviewer",
+    "build": "npm run build:mesh && npm run build:flow",
+    "build:mesh": "npm run build --workspace=meshing-webapp",
+    "build:flow": "npm run build --workspace=fracsys-flowviewer",
+    "build:preview:mesh": "npm run build:preview --workspace=meshing-webapp",
+    "build:preview:flow": "npm run build:preview --workspace=fracsys-flowviewer",
+    "preview:mesh": "npm run preview --workspace=meshing-webapp",
+    "preview:flow": "npm run preview --workspace=fracsys-flowviewer",
+    "type-check": "npm run type-check:mesh && npm run type-check:flow",
+    "type-check:mesh": "npm run type-check --workspace=meshing-webapp",
+    "type-check:flow": "npm run type-check --workspace=fracsys-flowviewer"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "vite": "^8.0.8"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  }
+}
