@@ -10,7 +10,7 @@ export class SceneManager {
 
   constructor(canvas: HTMLCanvasElement) {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x1a1a2e);
+    this.scene.background = new THREE.Color(0x000000);
 
     this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100000);
     this.camera.position.set(20, 25, 20);
@@ -30,6 +30,10 @@ export class SceneManager {
     this.scene.add(directional);
 
     window.addEventListener('resize', () => this.onResize());
+  }
+
+  setBackground(color: number): void {
+    this.scene.background = new THREE.Color(color);
   }
 
   /** Add labeled coordinate axes at the given origin, scaled to the grid. */

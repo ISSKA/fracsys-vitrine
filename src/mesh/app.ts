@@ -5,6 +5,7 @@ import Presets from '@kitware/vtk.js/Interaction/Style/InteractorStyleManipulato
 import vtkCellPicker from '@kitware/vtk.js/Rendering/Core/CellPicker';
 import { setupFileLoader, type FileLoaderAPI, type LayerConfig } from './fracture_zone_loader.js';
 import { initializeDamageZoneLoader } from './damage_zone_loader.js';
+import { setupBackgroundToggle } from '../background-toggle';
 
 // ============================================================================
 // Constants
@@ -24,12 +25,17 @@ const PICKER_TOLERANCE = 0.1;
 
 const fullScreenRenderer = vtkFullScreenRenderWindow.newInstance({
   container: document.getElementById('container'),
-  // rgb(26, 26, 46) — VTK takes each channel normalised to 0..1
-  background: [26 / 255, 26 / 255, 46 / 255]
+  background: [0, 0, 0]
 });
 const renderer = fullScreenRenderer.getRenderer();
 const renderWindow = fullScreenRenderer.getRenderWindow();
 const interactor = renderWindow.getInteractor();
+
+setupBackgroundToggle((background) => {
+  const channel = background === 'black' ? 0 : 1;
+  renderer.setBackground(channel, channel, channel);
+  renderWindow.render();
+});
 
 // Configure interaction style
 const interactorStyle = vtkInteractorStyleManipulator.newInstance();

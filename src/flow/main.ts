@@ -6,6 +6,7 @@ import { VoxelRenderer } from './rendering/VoxelRenderer';
 import { InletFlowRenderer } from './rendering/InletFlowRenderer';
 import { GridData } from './types';
 import { appConfig } from '../config';
+import { setupBackgroundToggle } from '../background-toggle';
 
 // --- Mobile warning ---
 // Touch-primary input on a small screen → likely a phone, unsuited for the
@@ -91,6 +92,9 @@ btnReset.addEventListener('click', () => {
 
 // --- Scene (persistent across grid loads) ---
 const scene = new SceneManager(canvas);
+setupBackgroundToggle((background) => {
+  scene.setBackground(background === 'black' ? 0x000000 : 0xffffff);
+});
 const defaultGridFilename = appConfig.flow.defaultGridFilename;
 const defaultGridUrl = `${import.meta.env.BASE_URL}data/${defaultGridFilename}`;
 // --- State ---
