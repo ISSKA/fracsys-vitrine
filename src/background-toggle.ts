@@ -31,7 +31,7 @@ export function setupBackgroundToggle(
     const nextBackground = isWhite ? 'black' : 'white';
 
     document.body.dataset.viewerBackground = background;
-    button.textContent = `${nextBackground === 'white' ? 'White' : 'Black'} background`;
+    button.textContent = nextBackground === 'white' ? '☀' : '☾';
     button.title = `Switch to ${nextBackground} background`;
     button.setAttribute('aria-label', button.title);
     button.setAttribute('aria-pressed', String(isWhite));
