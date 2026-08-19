@@ -19,3 +19,4 @@ dist/
 # Local flow-grid data
 public/data/*
 !public/data/.gitkeep
+!public/data/flow_network_voxels.csv
