@@ -20,10 +20,3 @@ export interface Neighbor {
   velocity: number;
   direction: 'down' | 'lateral' | 'up';
 }
-
-export interface ParticleState {
-  id: number;
-  position: VoxelCoord;
-  settled: boolean;
-  stationaryTicks: number;
-}
