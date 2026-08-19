@@ -1,9 +1,0 @@
-services:
-  web:
-    image: httpd:2.4-alpine
-    container_name: viewer
-    ports:
-      - "8080:80"
-    volumes:
-      - ../dist:/usr/local/apache2/htdocs:ro
-    restart: unless-stopped

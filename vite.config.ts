@@ -5,8 +5,7 @@ const fromRoot = (path: string): string => fileURLToPath(new URL(path, import.me
 
 export default defineConfig({
   base: process.env.DEPLOY_BASE ?? '/',
-  envDir: fromRoot('./vitrine-flowviewer'),
-  publicDir: fromRoot('./vitrine-flowviewer/public'),
+  publicDir: fromRoot('./public'),
   build: {
     outDir: 'dist',
     emptyOutDir: true,

@@ -3,10 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "workspaces": [
-    "vitrine-meshviewer/webapp/html",
-    "vitrine-flowviewer"
-  ],
   "scripts": {
     "dev": "vite",
     "dev:mesh": "vite --open /",
@@ -14,11 +10,16 @@
     "build": "npm run type-check && vite build",
     "build:preview": "npm run type-check && vite build --base=/preview/",
     "preview": "vite preview",
-    "type-check": "npm run type-check:mesh && npm run type-check:flow",
-    "type-check:mesh": "tsc --noEmit --project vitrine-meshviewer/webapp/html/tsconfig.json",
-    "type-check:flow": "tsc --noEmit --project vitrine-flowviewer/tsconfig.json"
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@kitware/vtk.js": "^30.0.0",
+    "papaparse": "^5.5.3",
+    "three": "^0.184.0"
   },
   "devDependencies": {
+    "@types/papaparse": "^5.5.2",
+    "@types/three": "^0.184.0",
     "typescript": "^6.0.3",
     "vite": "^8.0.8"
   },

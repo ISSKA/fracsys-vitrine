@@ -15,3 +15,7 @@ venv/
 
 node_modules/
 dist/
+
+# Local flow-grid data
+public/data/*
+!public/data/.gitkeep

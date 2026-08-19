@@ -1,8 +1,16 @@
 .git
+.agents
+.claude
+.idea
 **/node_modules
 **/dist
 **/venv
 **/__pycache__
+**/.pytest_cache
 **/.env
 **/.env.*
 !**/.env.example
+docs
+infra
+vitrine-flowviewer
+vitrine-meshviewer

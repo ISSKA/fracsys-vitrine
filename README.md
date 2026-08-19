@@ -4,10 +4,10 @@ FracSYS Vitrine is one Vite multi-page application for exploring FracSYS models 
 
 | Page | URL | Description |
 | --- | --- | --- |
-| Mesh Viewer | `/` | Fracture- and damage-zone meshes rendered with VTK.js |
-| Flow Viewer | `/flow/` | Particle-flow simulation rendered with Three.js |
+| [Mesh Viewer](docs/mesh-viewer.md) | `/` | Fracture- and damage-zone meshes rendered with VTK.js |
+| [Flow Viewer](docs/flow-viewer.md) | `/flow/` | Particle-flow simulation rendered with Three.js |
 
-The repository also contains optional AWS CDK infrastructure for private model storage and signed upload/download URLs.
+The repository also contains [optional AWS CDK infrastructure](infra/aws/README.md) for private model storage and signed upload/download URLs. See the [AWS deployment guide](docs/aws/AWS_DEPLOYMENT.md) for deployment details.
 
 ## Prerequisites
 
@@ -41,14 +41,14 @@ Both pages are written to the root `dist/` directory. The build emits separate V
 Build and serve the complete application with nginx:
 
 ```bash
-docker compose -f vitrine-flowviewer/docker-compose.yml up --build
+docker compose up --build
 ```
 
-Both pages are then available on port 8080. The mesh viewer's Apache Compose file can also serve the already-built root `dist/` directory.
+Both pages are then available on port 8080.
 
 ## Flow-grid data
 
-Place local CSV grids in `vitrine-flowviewer/public/data/`. Set `VITE_DEFAULT_GRID_FILENAME` in `vitrine-flowviewer/.env.local` to choose the startup grid. If the file is unavailable, the Flow Viewer uses its generated sample grid.
+Place local CSV grids in `public/data/`. Set `VITE_DEFAULT_GRID_FILENAME` in the root `.env.local` file to choose the startup grid. If the file is unavailable, the Flow Viewer uses its generated sample grid.
 
 ## Repository structure
 
@@ -56,10 +56,16 @@ Place local CSV grids in `vitrine-flowviewer/public/data/`. Set `VITE_DEFAULT_GR
 fracsys-vitrine/
 ├── index.html             # Mesh Viewer page at /
 ├── flow/index.html        # Flow Viewer page at /flow/
+├── src/mesh/              # VTK.js viewer
+├── src/flow/              # Three.js simulation
+├── src/config.ts          # Shared runtime configuration
+├── public/data/           # Local flow-grid data
 ├── vite.config.ts         # Multi-page Vite configuration
-├── package.json           # Shared toolchain and commands
-├── vitrine-meshviewer/    # Mesh source and AWS infrastructure
-└── vitrine-flowviewer/    # Flow source and nginx deployment
+├── Dockerfile             # Unified production image
+├── nginx.conf             # Unified static-server configuration
+├── package.json           # Dependencies, toolchain, and commands
+├── infra/aws/             # Separately deployed AWS CDK project
+└── docs/                  # Viewer and AWS documentation
 ```
 
 Useful checks:
@@ -114,11 +120,11 @@ Les deux pages sont générées dans le répertoire racine `dist/`, avec des bun
 Construisez et servez l'application complète avec nginx :
 
 ```bash
-docker compose -f vitrine-flowviewer/docker-compose.yml up --build
+docker compose up --build
 ```
 
 Les deux pages sont alors accessibles sur le port 8080.
 
 ## Données de grille
 
-Placez les grilles CSV locales dans `vitrine-flowviewer/public/data/`. Définissez `VITE_DEFAULT_GRID_FILENAME` dans `vitrine-flowviewer/.env.local` pour sélectionner la grille chargée au démarrage. Si elle est absente, la visionneuse utilise une grille d'exemple générée.
+Placez les grilles CSV locales dans `public/data/`. Définissez `VITE_DEFAULT_GRID_FILENAME` dans le fichier `.env.local` à la racine pour sélectionner la grille chargée au démarrage. Si elle est absente, la visionneuse utilise une grille d'exemple générée.
