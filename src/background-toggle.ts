@@ -4,9 +4,9 @@ const STORAGE_KEY = 'fracsys-viewer-background';
 
 function readSavedBackground(): ViewerBackground {
   try {
-    return localStorage.getItem(STORAGE_KEY) === 'white' ? 'white' : 'black';
+    return localStorage.getItem(STORAGE_KEY) === 'black' ? 'black' : 'white';
   } catch {
-    return 'black';
+    return 'white';
   }
 }
 

@@ -25,7 +25,7 @@ const PICKER_TOLERANCE = 0.1;
 
 const fullScreenRenderer = vtkFullScreenRenderWindow.newInstance({
   container: document.getElementById('container'),
-  background: [0, 0, 0]
+  background: [1, 1, 1]
 });
 const renderer = fullScreenRenderer.getRenderer();
 const renderWindow = fullScreenRenderer.getRenderWindow();
