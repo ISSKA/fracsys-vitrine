@@ -14,16 +14,16 @@ Run these commands from the repository root:
 
 ```bash
 npm install
-npm run dev:flow
+npm run dev
 ```
 
-Open the URL shown in the terminal (typically `http://localhost:5173/`).
+Open `http://localhost:3000/flow/`. The Mesh Viewer is served by the same Vite process at `http://localhost:3000/`.
 
 ### Build for Production
 
 ```bash
-npm run build:flow
-npm run preview:flow
+npm run build
+npm run preview
 ```
 
 ### Run with Docker
@@ -32,10 +32,10 @@ npm run preview:flow
 docker compose up --build
 ```
 
-Open `http://localhost:8080/`. The image is a two-stage build: Node compiles the
-bundle, nginx serves the static output (no Node in the runtime image).
+Open `http://localhost:8080/flow/`. The image is a two-stage build: Node compiles
+both viewer pages, and nginx serves the static output (no Node in the runtime image).
 
-For a hot-reloading dev server in a container on `http://localhost:5173/`:
+For a hot-reloading dev server in a container on `http://localhost:3000/flow/`:
 
 ```bash
 docker compose up dev
@@ -44,8 +44,8 @@ docker compose up dev
 Without compose:
 
 ```bash
-docker build -f vitrine-flowviewer/Dockerfile -t fracsys-flowviewer .
-docker run --rm -p 8080:80 fracsys-flowviewer
+docker build -f vitrine-flowviewer/Dockerfile -t fracsys-vitrine .
+docker run --rm -p 8080:80 fracsys-vitrine
 ```
 
 #### Build arguments
@@ -55,16 +55,16 @@ runtime environment variables — changing one requires rebuilding the image.
 
 | Arg | Default in image | Purpose |
 | --- | --- | --- |
-| `DEPLOY_BASE` | `/` | Public base path. The repo default is `/preview/`; the container serves at the web root instead. Set it to match your path when hosting under a sub-path. |
+| `DEPLOY_BASE` | `/` | Public base path for both pages. Set it when hosting the application under a sub-path. |
 | `VITE_DEFAULT_GRID_FILENAME` | `flow_network_voxels.csv` | Grid CSV loaded on startup, resolved relative to `public/data/`. |
 
 ```bash
-docker build --build-arg DEPLOY_BASE=/preview/ -t fracsys-flowviewer .
+docker build -f vitrine-flowviewer/Dockerfile --build-arg DEPLOY_BASE=/preview/ -t fracsys-vitrine .
 ```
 
 #### Grid data
 
-`public/data/*.csv` is git-ignored, so the CSV is copied from your working tree
+`vitrine-flowviewer/public/data/*.csv` files are git-ignored, so a CSV is copied from your working tree
 into the image at build time — a fresh clone has no grid file and the container
 falls back to the generated sample grid. To swap grids without rebuilding,
 uncomment the `volumes` block on the `web` service in `docker-compose.yml` to
@@ -98,7 +98,7 @@ x,y,z,permeability
 - Comma, semicolon, and tab delimiters are supported
 - The grid does not need to be a full rectangular block — sparse/irregular shapes are supported
 
-A default grid (`public/data/damage_zone.csv`) is loaded automatically on startup; if it is missing, a procedurally generated sample grid is used as a fallback.
+The configured grid from `vitrine-flowviewer/public/data/` is loaded automatically on startup; if it is missing, a procedurally generated sample grid is used as a fallback.
 
 ### How the Simulation Works
 

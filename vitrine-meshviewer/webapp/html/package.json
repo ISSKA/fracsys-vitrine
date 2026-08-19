@@ -1,13 +1,13 @@
 {
   "name": "meshing-webapp",
   "version": "1.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "build:preview": "tsc && vite build --base=/preview/",
-    "preview": "vite preview",
-    "type-check": "tsc --noEmit"
+    "dev": "npm --prefix ../../.. run dev",
+    "build": "npm --prefix ../../.. run build",
+    "preview": "npm --prefix ../../.. run preview",
+    "type-check": "npm --prefix ../../.. run type-check:mesh"
   },
   "dependencies": {
     "@kitware/vtk.js": "^30.0.0"

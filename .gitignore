@@ -1,8 +1,11 @@
 .idea/
 .claude/
 
-# Ignoring file with secrets
+# Ignore local configuration and secrets
 .env
+.env.local
+.env.*.local
+!.env.example
 
 *.glb
 *.glft
@@ -11,3 +14,4 @@
 venv/
 
 node_modules/
+dist/

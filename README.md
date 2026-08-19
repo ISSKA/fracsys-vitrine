@@ -1,167 +1,124 @@
 # FracSYS Vitrine
 
-FracSYS Vitrine brings together two browser-based 3D applications for exploring FracSYS models and flow results. The viewers share one npm toolchain and lockfile, while retaining separate development and build commands.
+FracSYS Vitrine is one Vite multi-page application for exploring FracSYS models and flow results. The mesh and flow viewers share one toolchain, build, and deployment while running on separate pages so their WebGL renderers remain isolated.
 
-## Projects
-
-| Project | Description | Main technologies |
+| Page | URL | Description |
 | --- | --- | --- |
-| [`vitrine-meshviewer`](./vitrine-meshviewer/) | Interactive viewer for fracture- and damage-zone meshes. It supports multiple layers, local VTP uploads, AWS S3 downloads, cell metadata, surface/wireframe rendering, and hydraulic-head colour mapping. The project also contains optional AWS CDK infrastructure for private model storage and signed upload/download URLs. | TypeScript, VTK.js, Vite, AWS CDK, Docker/Apache |
-| [`vitrine-flowviewer`](./vitrine-flowviewer/) | Interactive particle-flow simulation through a porous voxel grid. It visualizes permeability, pooling, inlet flow, and exits, and can load custom voxel grids from CSV files. | TypeScript, Three.js, Vite, Docker/nginx |
+| Mesh Viewer | `/` | Fracture- and damage-zone meshes rendered with VTK.js |
+| Flow Viewer | `/flow/` | Particle-flow simulation rendered with Three.js |
+
+The repository also contains optional AWS CDK infrastructure for private model storage and signed upload/download URLs.
 
 ## Prerequisites
 
-- Node.js 20.19 or later
+- Node.js 20.19 or a supported newer release
 - npm
 - Docker or Podman (optional)
 - Python 3.12+, AWS CLI, and AWS CDK CLI (only for the mesh viewer's AWS infrastructure)
 
-## Quick start
+## Development
 
-Install the shared toolchain once from the repository root, then run either viewer.
+Install dependencies and start the unified development server from the repository root:
 
 ```bash
 npm install
+npm run dev
 ```
 
-### Mesh viewer
+Open the Mesh Viewer at <http://localhost:3000/> or the Flow Viewer at <http://localhost:3000/flow/>.
+
+## Production build
 
 ```bash
-npm run dev:mesh
+npm run build
+npm run preview
 ```
 
-Open <http://localhost:3000>.
+Both pages are written to the root `dist/` directory. The build emits separate VTK.js and Three.js entry bundles.
 
-To create and serve a production build with Docker:
+## Docker
 
-```bash
-npm run build:mesh
-docker compose -f vitrine-meshviewer/docker-compose.yaml up -d
-```
-
-The Docker deployment is available at <http://localhost:8080>.
-
-See the [mesh viewer documentation](./vitrine-meshviewer/README.md) for controls and the [AWS deployment guide](./vitrine-meshviewer/docu/AWS_DEPLOYMENT.md) for cloud infrastructure setup.
-
-### Flow viewer
-
-```bash
-npm run dev:flow
-```
-
-Open the URL printed by Vite, normally <http://localhost:5173>.
-
-To build and run the production container:
+Build and serve the complete application with nginx:
 
 ```bash
 docker compose -f vitrine-flowviewer/docker-compose.yml up --build
 ```
 
-The Docker deployment is available at <http://localhost:8080>.
+Both pages are then available on port 8080. The mesh viewer's Apache Compose file can also serve the already-built root `dist/` directory.
 
-The viewer uses a generated sample grid when no default CSV is present. To use project data, place a CSV in `vitrine-flowviewer/public/data/` or load one through the application. See the [flow viewer documentation](./vitrine-flowviewer/README.md) for the CSV format, simulation behavior, and controls.
+## Flow-grid data
 
-> Both Docker configurations use host port `8080` by default. Run one at a time or change one of the port mappings if you want to run both simultaneously.
+Place local CSV grids in `vitrine-flowviewer/public/data/`. Set `VITE_DEFAULT_GRID_FILENAME` in `vitrine-flowviewer/.env.local` to choose the startup grid. If the file is unavailable, the Flow Viewer uses its generated sample grid.
 
 ## Repository structure
 
 ```text
 fracsys-vitrine/
-├── package.json          # Shared Vite/TypeScript toolchain and workspace commands
-├── vitrine-meshviewer/   # Mesh visualization app and AWS infrastructure
-└── vitrine-flowviewer/   # Voxel-grid particle-flow simulator
+├── index.html             # Mesh Viewer page at /
+├── flow/index.html        # Flow Viewer page at /flow/
+├── vite.config.ts         # Multi-page Vite configuration
+├── package.json           # Shared toolchain and commands
+├── vitrine-meshviewer/    # Mesh source and AWS infrastructure
+└── vitrine-flowviewer/    # Flow source and nginx deployment
 ```
 
-## Production builds
+Useful checks:
 
 ```bash
-npm install
+npm run type-check
 npm run build
 ```
-
-Build output is generated in each application's `dist/` directory.
 
 ---
 
 # FracSYS Vitrine — Français
 
-FracSYS Vitrine rassemble deux applications 3D accessibles dans un navigateur pour explorer les modèles et les résultats d'écoulement FracSYS. Les visionneuses partagent une seule chaîne d'outils npm et un seul fichier de verrouillage, tout en conservant des commandes de développement et de construction distinctes.
+FracSYS Vitrine est une seule application Vite multipage permettant d'explorer les modèles et les résultats d'écoulement FracSYS. Les visionneuses de maillages et d'écoulement partagent la même chaîne d'outils, la même construction et le même déploiement, tout en restant sur des pages séparées afin d'isoler leurs moteurs WebGL.
 
-## Projets
-
-| Projet | Description | Technologies principales |
+| Page | URL | Description |
 | --- | --- | --- |
-| [`vitrine-meshviewer`](./vitrine-meshviewer/) | Visionneuse interactive de maillages de zones de fracture et d'endommagement. Elle prend en charge plusieurs couches, l'importation locale de fichiers VTP, le téléchargement depuis AWS S3, les métadonnées des cellules, le rendu en surface ou en fil de fer et la représentation colorée de la charge hydraulique. Le projet contient également une infrastructure AWS CDK facultative pour le stockage privé des modèles et la génération d'URL signées de téléversement et de téléchargement. | TypeScript, VTK.js, Vite, AWS CDK, Docker/Apache |
-| [`vitrine-flowviewer`](./vitrine-flowviewer/) | Simulation interactive de l'écoulement de particules dans une grille de voxels poreux. Elle permet de visualiser la perméabilité, l'accumulation, l'écoulement entrant et les sorties, ainsi que de charger des grilles de voxels personnalisées à partir de fichiers CSV. | TypeScript, Three.js, Vite, Docker/nginx |
+| Visionneuse de maillages | `/` | Maillages des zones de fracture et d'endommagement rendus avec VTK.js |
+| Visionneuse d'écoulement | `/flow/` | Simulation de particules rendue avec Three.js |
+
+Le dépôt contient également une infrastructure AWS CDK facultative pour le stockage privé des modèles et la génération d'URL signées.
 
 ## Prérequis
 
-- Node.js 20.19 ou version ultérieure
+- Node.js 20.19 ou une version ultérieure prise en charge
 - npm
 - Docker ou Podman (facultatif)
-- Python 3.12 ou version ultérieure, AWS CLI et AWS CDK CLI (uniquement pour l'infrastructure AWS de la visionneuse de maillages)
+- Python 3.12+, AWS CLI et AWS CDK CLI (uniquement pour l'infrastructure AWS)
 
-## Démarrage rapide
+## Développement
 
-Installez une seule fois la chaîne d'outils partagée depuis la racine du dépôt, puis lancez la visionneuse souhaitée.
+Installez les dépendances et démarrez le serveur unifié depuis la racine du dépôt :
 
 ```bash
 npm install
+npm run dev
 ```
 
-### Visionneuse de maillages
+La visionneuse de maillages est accessible à l'adresse <http://localhost:3000/> et la visionneuse d'écoulement à l'adresse <http://localhost:3000/flow/>.
+
+## Construction de production
 
 ```bash
-npm run dev:mesh
+npm run build
+npm run preview
 ```
 
-Ouvrez <http://localhost:3000>.
+Les deux pages sont générées dans le répertoire racine `dist/`, avec des bundles distincts pour VTK.js et Three.js.
 
-Pour créer une version de production et la servir avec Docker :
+## Docker
 
-```bash
-npm run build:mesh
-docker compose -f vitrine-meshviewer/docker-compose.yaml up -d
-```
-
-Le déploiement Docker est accessible à l'adresse <http://localhost:8080>.
-
-Consultez la [documentation de la visionneuse de maillages](./vitrine-meshviewer/README.md) pour connaître les commandes, et le [guide de déploiement AWS](./vitrine-meshviewer/docu/AWS_DEPLOYMENT_FR.md) pour configurer l'infrastructure cloud.
-
-### Visionneuse d'écoulement
-
-```bash
-npm run dev:flow
-```
-
-Ouvrez l'URL affichée par Vite, généralement <http://localhost:5173>.
-
-Pour construire et lancer le conteneur de production :
+Construisez et servez l'application complète avec nginx :
 
 ```bash
 docker compose -f vitrine-flowviewer/docker-compose.yml up --build
 ```
 
-Le déploiement Docker est accessible à l'adresse <http://localhost:8080>.
+Les deux pages sont alors accessibles sur le port 8080.
 
-La visionneuse utilise une grille d'exemple générée lorsqu'aucun fichier CSV par défaut n'est disponible. Pour utiliser les données du projet, placez un fichier CSV dans `vitrine-flowviewer/public/data/` ou chargez-en un depuis l'application. Consultez la [documentation de la visionneuse d'écoulement](./vitrine-flowviewer/README.md) pour connaître le format CSV, le fonctionnement de la simulation et les commandes.
+## Données de grille
 
-> Les deux configurations Docker utilisent par défaut le port hôte `8080`. Lancez une seule application à la fois ou modifiez l'une des correspondances de ports pour exécuter les deux simultanément.
-
-## Structure du dépôt
-
-```text
-fracsys-vitrine/
-├── package.json          # Chaîne Vite/TypeScript et commandes partagées
-├── vitrine-meshviewer/   # Application de visualisation des maillages et infrastructure AWS
-└── vitrine-flowviewer/   # Simulateur d'écoulement de particules sur une grille de voxels
-```
-
-## Versions de production
-
-```bash
-npm install
-npm run build
-```
-
-Les fichiers générés sont placés dans le répertoire `dist/` de chaque application.
+Placez les grilles CSV locales dans `vitrine-flowviewer/public/data/`. Définissez `VITE_DEFAULT_GRID_FILENAME` dans `vitrine-flowviewer/.env.local` pour sélectionner la grille chargée au démarrage. Si elle est absente, la visionneuse utilise une grille d'exemple générée.

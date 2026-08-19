@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Vite bakes these into the bundle at build time, so they are build args.
 # DEPLOY_BASE defaults to "/" here: the container serves the app at the web
-# root, unlike the repo default of "/preview/".
+# root. Set it when deploying the complete app below a sub-path.
 ARG DEPLOY_BASE=/
 ARG VITE_DEFAULT_GRID_FILENAME=flow_network_voxels.csv
 ENV DEPLOY_BASE=$DEPLOY_BASE \
@@ -18,14 +18,14 @@ COPY vitrine-flowviewer/package.json ./vitrine-flowviewer/package.json
 COPY vitrine-meshviewer/webapp/html/package.json ./vitrine-meshviewer/webapp/html/package.json
 RUN npm ci
 
-COPY vitrine-flowviewer ./vitrine-flowviewer
-RUN npm run build:flow
+COPY . .
+RUN npm run build
 
 # ---- serve ----------------------------------------------------------------
 FROM nginx:1.29-alpine AS runtime
 
 COPY vitrine-flowviewer/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/vitrine-flowviewer/dist /usr/share/nginx/html
+COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
 

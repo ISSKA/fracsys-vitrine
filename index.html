@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FracSYS Vitrine</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="./vitrine-meshviewer/webapp/html/styles.css">
 </head>
 <body>
     <div id="controls">
-        <h4>Mesh Viewer / <a href="/preview">Flow Viewer</a></h4>
+        <h4>Mesh Viewer / <a href="./flow/">Flow Viewer</a></h4>
         <button id="btn-fracture-zone">Fracture Zone</button><br>
         <button id="btn-damage-zone">Damage Zone</button><br>
         <div id="damageZoneModelControls" style="margin-top: 10px; margin-bottom: 15px; display: none;">
@@ -30,7 +30,7 @@
         <button id="btn-toggle-wireframe">Toggle wireframe</button>
     </div>
     <div id="info">
-        Controls: Rotate (left mouse button), Pan (right mouse button), Roll (Shift + left mouse buttin), Zoom (mouse wheel)
+        Controls: Rotate (left mouse button), Pan (right mouse button), Roll (Shift + left mouse button), Zoom (mouse wheel)
     </div>
     <div id="metadata"></div>
     <div id="download-progress" style="display: none;">
@@ -43,6 +43,6 @@
     </div>
     <div id="container"></div>
 
-    <script type="module" src="/src/app.ts"></script>
+    <script type="module" src="./vitrine-meshviewer/webapp/html/src/app.ts"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 services:
-  # Production image: static bundle served by nginx on http://localhost:8080
+  # Unified production bundle: mesh at / and flow at /flow/.
   web:
     build:
       context: ..
@@ -8,7 +8,7 @@ services:
       args:
         DEPLOY_BASE: ${DEPLOY_BASE:-/}
         VITE_DEFAULT_GRID_FILENAME: ${VITE_DEFAULT_GRID_FILENAME:-flow_network_voxels.csv}
-    image: fracsys-flowviewer:latest
+    image: fracsys-vitrine:latest
     ports:
       - "8080:80"
     restart: unless-stopped
@@ -16,16 +16,16 @@ services:
     # volumes:
     #   - ./public/data:/usr/share/nginx/html/data:ro
 
-  # Dev server with hot reload on http://localhost:5173 — `docker compose up dev`
+  # Unified dev server with hot reload on http://localhost:3000.
   dev:
     profiles: ["dev"]
     image: node:22-alpine
     working_dir: /app
-    command: sh -c "npm ci && npm run dev:flow -- --host 0.0.0.0"
+    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0"
     environment:
       DEPLOY_BASE: /
     ports:
-      - "5173:5173"
+      - "3000:3000"
     volumes:
       - ..:/app
       - node_modules:/app/node_modules

@@ -8,18 +8,15 @@
     "vitrine-flowviewer"
   ],
   "scripts": {
-    "dev:mesh": "npm run dev --workspace=meshing-webapp",
-    "dev:flow": "npm run dev --workspace=fracsys-flowviewer",
-    "build": "npm run build:mesh && npm run build:flow",
-    "build:mesh": "npm run build --workspace=meshing-webapp",
-    "build:flow": "npm run build --workspace=fracsys-flowviewer",
-    "build:preview:mesh": "npm run build:preview --workspace=meshing-webapp",
-    "build:preview:flow": "npm run build:preview --workspace=fracsys-flowviewer",
-    "preview:mesh": "npm run preview --workspace=meshing-webapp",
-    "preview:flow": "npm run preview --workspace=fracsys-flowviewer",
+    "dev": "vite",
+    "dev:mesh": "vite --open /",
+    "dev:flow": "vite --open /flow/",
+    "build": "npm run type-check && vite build",
+    "build:preview": "npm run type-check && vite build --base=/preview/",
+    "preview": "vite preview",
     "type-check": "npm run type-check:mesh && npm run type-check:flow",
-    "type-check:mesh": "npm run type-check --workspace=meshing-webapp",
-    "type-check:flow": "npm run type-check --workspace=fracsys-flowviewer"
+    "type-check:mesh": "tsc --noEmit --project vitrine-meshviewer/webapp/html/tsconfig.json",
+    "type-check:flow": "tsc --noEmit --project vitrine-flowviewer/tsconfig.json"
   },
   "devDependencies": {
     "typescript": "^6.0.3",

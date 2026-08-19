@@ -1,13 +1,12 @@
 # Deployment Guide - FracSYS Webapp
 
-This guide explains how to deploy the webapp to your Apache server at fracsys-vitrine.ch.
+This guide explains how to deploy the unified multi-page app to your Apache server at fracsys-vitrine.ch. Run build and file-transfer commands from the repository root.
 
 ## Quick Deployment
 
 ### Step 1: Build the Project
 
 ```bash
-cd webapp/html
 npm run build
 ```
 
@@ -49,10 +48,9 @@ After deployment, your server should have:
 
 ```
 /var/www/html/
-├── index.html                    # Main HTML (with asset references)
-└── assets/
-    ├── index-[hash].css          # Bundled styles
-    ├── index-[hash].js           # Application code
+├── index.html                    # Mesh Viewer
+├── flow/index.html               # Flow Viewer
+└── assets/                       # Separate hashed mesh and flow bundles
     ├── index-[hash].js.map       # Source map
     ├── three-[hash].js           # Three.js library
     └── three-[hash].js.map       # Source map

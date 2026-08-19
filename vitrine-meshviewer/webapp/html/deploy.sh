@@ -5,12 +5,16 @@
 
 set -e  # Exit on error
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+cd "$REPO_ROOT"
+
 echo "🏗️  Building project with Vite..."
 npm run build
 
 echo "✅ Build complete!"
 echo ""
-echo "📦 Deployment files ready in: ./dist/"
+echo "📦 Unified deployment files ready in: $REPO_ROOT/dist/"
 echo ""
 echo "To deploy to Apache server:"
 echo "1. Copy the contents of ./dist/ to /var/www/html/ on your server"

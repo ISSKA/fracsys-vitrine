@@ -1,5 +1,7 @@
 # TypeScript Migration Guide
 
+> Historical note: this document describes the original standalone migration. The current application uses the repository-root `index.html`, `vite.config.ts`, package scripts, and `dist/` as part of a unified multi-page build.
+
 ## Overview
 
 The webapp has been successfully converted from JavaScript to TypeScript with strict type checking enabled.

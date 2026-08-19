@@ -4,21 +4,19 @@ A 3D mesh visualization web application built with TypeScript and VTK.js.
 
 ## Project Structure
 
-```
-webapp/html/
+```text
+index.html                       # Root Mesh Viewer HTML entry
+vite.config.ts                   # Shared multi-page Vite configuration
+vitrine-meshviewer/webapp/html/
 ├── src/
 │   ├── app.ts                   # Main application entry point
 │   ├── fracture_zone_loader.ts  # Fracture zone file loading and layer management
-│   ├── damage_zone_loader.ts    # Zone switching (fracture / damage)
+│   ├── damage_zone_loader.ts    # Zone switching
 │   └── scalar_bar.ts            # DOM-based colour bar overlay
-├── types/
-│   └── vtk.d.ts                 # TypeScript definitions for VTK.js
-├── dist/                        # Build output (generated)
-├── index.html                   # HTML entry point
-├── styles.css                   # Application styles
-├── package.json                 # Dependencies and scripts
-├── tsconfig.json                # TypeScript configuration
-└── vite.config.ts               # Vite build configuration
+├── types/vtk.d.ts               # Minimal VTK.js declarations
+├── styles.css
+├── package.json                 # Mesh-specific dependencies
+└── tsconfig.json
 ```
 
 ## Setup
@@ -40,7 +38,7 @@ npm install
 ### Development Server
 
 ```bash
-npm run dev:mesh
+npm run dev
 ```
 
 The app will be available at `http://localhost:3000`.
@@ -54,15 +52,15 @@ npm run type-check:mesh
 ## Production Build
 
 ```bash
-npm run build:mesh
+npm run build
 ```
 
-Built files are written to `webapp/html/dist/`.
+Both viewer pages are written to the root `dist/` directory.
 
 ### Preview Production Build
 
 ```bash
-npm run preview:mesh
+npm run preview
 ```
 
 ## Docker Deployment
@@ -70,7 +68,7 @@ npm run preview:mesh
 ```bash
 # Build the TypeScript app
 npm install
-npm run build:mesh
+npm run build
 
 # Start Docker container (from project root)
 docker compose -f vitrine-meshviewer/docker-compose.yaml up -d
@@ -78,7 +76,7 @@ docker compose -f vitrine-meshviewer/docker-compose.yaml up -d
 
 The application will be available at `http://localhost:8080`.
 
-The Docker container serves files from `webapp/html/dist/` on port 80.
+The Docker container serves the unified root `dist/` directory on port 80.
 
 ## Features
 
@@ -102,7 +100,7 @@ The Docker container serves files from `webapp/html/dist/` on port 80.
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev:mesh` | Start the mesh development server |
-| `npm run build:mesh` | Build the mesh viewer for production |
-| `npm run preview:mesh` | Preview the mesh production build |
+| `npm run dev` | Start the unified development server |
+| `npm run build` | Build both viewer pages for production |
+| `npm run preview` | Preview the unified production build |
 | `npm run type-check:mesh` | Check mesh types without emitting |

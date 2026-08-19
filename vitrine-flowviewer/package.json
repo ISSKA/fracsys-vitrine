@@ -1,14 +1,14 @@
 {
   "name": "fracsys-flowviewer",
   "version": "1.0.0",
+  "private": true,
   "description": "",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "build:preview": "tsc && vite build --base=/preview/",
-    "preview": "vite preview",
-    "type-check": "tsc --noEmit"
+    "dev": "npm --prefix .. run dev",
+    "build": "npm --prefix .. run build",
+    "preview": "npm --prefix .. run preview",
+    "type-check": "npm --prefix .. run type-check:flow"
   },
   "dependencies": {
     "papaparse": "^5.5.3",
