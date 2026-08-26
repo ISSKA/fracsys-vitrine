@@ -11,9 +11,14 @@
     <button id="background-toggle" type="button" aria-label="Switch to black background" title="Switch to black background">☾</button>
     <div id="ui">
       <h4><a href="../">Mesh Viewer</a> / Flow Viewer</h4>
-      <button id="btn-play-pause">Pause</button>
-      <button id="btn-reset">Reset view</button>
-      <button id="btn-reset-sim">Reset sim.</button>
+      <div id="simulation-controls" role="group" aria-label="Simulation controls">
+        <span class="simulation-controls-label">Simulation</span>
+        <div class="simulation-options">
+          <button id="btn-play-pause" class="simulation-option" type="button">Pause</button>
+          <button id="btn-reset" class="simulation-option" type="button">Reset view</button>
+          <button id="btn-reset-sim" class="simulation-option" type="button">Reset sim.</button>
+        </div>
+      </div>
       <!-- <button id="btn-load-csv">Load CSV</button>
       <input id="csv-file-input" type="file" accept=".csv,.txt" style="display:none" /> -->
       <label>Speed <input id="speed-slider" type="range" min="0.25" max="4" step="0.25" value="1" /><span id="speed-value">1.00&times;</span></label>

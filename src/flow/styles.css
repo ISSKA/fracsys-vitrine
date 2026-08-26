@@ -38,6 +38,62 @@ body.flow-viewer canvas { display: block; }
 
 #ui button:disabled:hover { background: #cccccc; }
 
+#simulation-controls {
+  margin: 10px 5px 12px;
+}
+
+.simulation-controls-label {
+  display: block;
+  margin-bottom: 6px;
+  color: #333;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.simulation-options {
+  display: flex;
+}
+
+#simulation-controls .simulation-option {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid #4CAF50;
+  border-radius: 0;
+  background: #fff;
+  color: #287a2c;
+  font-weight: 600;
+}
+
+#simulation-controls .simulation-option:first-child {
+  border-radius: 4px 0 0 4px;
+}
+
+#simulation-controls .simulation-option + .simulation-option {
+  margin-left: -1px;
+}
+
+#simulation-controls .simulation-option:last-child {
+  border-radius: 0 4px 4px 0;
+}
+
+#simulation-controls .simulation-option:hover:not(:disabled) {
+  position: relative;
+  z-index: 1;
+  background: #edf7ee;
+}
+
+#simulation-controls .simulation-option:disabled {
+  border-color: #9bc99d;
+  background: #f5f5f5;
+  color: #777;
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+#simulation-controls .simulation-option:disabled:hover {
+  background: #f5f5f5;
+}
+
 #ui label {
   display: flex;
   align-items: center;
