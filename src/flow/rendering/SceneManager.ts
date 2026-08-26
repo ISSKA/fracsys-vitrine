@@ -102,6 +102,19 @@ export class SceneManager {
     this.camera.lookAt(target);
   }
 
+  /** Set and remember the view that can later be restored with resetView(). */
+  setInitialView(target: THREE.Vector3, position: THREE.Vector3): void {
+    this.controls.target.copy(target);
+    this.camera.position.copy(position);
+    this.controls.update();
+    this.controls.saveState();
+  }
+
+  /** Restore the camera position and orbit target saved by setInitialView(). */
+  resetView(): void {
+    this.controls.reset();
+  }
+
   private onResize(): void {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();

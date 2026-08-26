@@ -86,6 +86,7 @@ btnPlayPause.addEventListener('click', () => {
 });
 
 btnReset.addEventListener('click', () => {
+  scene.resetView();
   inletFlow?.reset();
   tickCounter.textContent = 'Tick: 0';
 });
@@ -124,12 +125,11 @@ function loadGrid(data: GridData): void {
 
   const center = grid.getCenter();
   const radius = grid.getRadius();
-  scene.lookAt(center);
-  scene.camera.position.set(
+  scene.setInitialView(center, new THREE.Vector3(
     center.x + radius * 1.5,
     center.y + radius * 1.2,
     center.z + radius * 1.5,
-  );
+  ));
 
   const axisLength = radius * 0.4;
   scene.addAxes(new THREE.Vector3(0, 0, 0), axisLength);
