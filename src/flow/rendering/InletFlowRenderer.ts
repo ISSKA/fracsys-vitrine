@@ -109,6 +109,7 @@ export class InletFlowRenderer {
 
     this.timeScale = this.computeTimeScale();
     this.timeScale *= this.computeUniformSlowdownFactor();
+    console.log('Flow particle timeScale:', this.timeScale);
 
     // Spawn ceiling. Not `existingCount`: flow paths merge and the data contains
     // cycles (balls in a cycle never reach a dead-end, so they are never removed
