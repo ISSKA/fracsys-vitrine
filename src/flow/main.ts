@@ -31,7 +31,6 @@ const speedValue = document.getElementById('speed-value') as HTMLSpanElement;
 const voxelsToggle = document.getElementById('voxels-toggle') as HTMLInputElement;
 const particlesToggle = document.getElementById('particles-toggle') as HTMLInputElement;
 const particleCounterToggle = document.getElementById('particle-counter-toggle') as HTMLInputElement;
-const tickCounter = document.getElementById('tick-counter') as HTMLSpanElement;
 const layerControlsToggle = document.getElementById('layerControlsToggle') as HTMLHeadingElement;
 const layerCheckboxes = document.getElementById('layerCheckboxes') as HTMLDivElement;
 
@@ -131,7 +130,6 @@ function loadGrid(data: GridData): void {
 
   const axisLength = radius * 0.4;
   scene.addAxes(new THREE.Vector3(0, 0, 0), axisLength);
-  tickCounter.textContent = 'Tick: 0';
 }
 
 fetch(defaultGridUrl)
