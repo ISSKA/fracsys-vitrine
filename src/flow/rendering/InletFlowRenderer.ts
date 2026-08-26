@@ -2,21 +2,16 @@ import * as THREE from 'three';
 import { VoxelGrid } from '../grid/VoxelGrid';
 
 /**
- * Animation seconds a hop takes at the *reference* velocity (the median over the
- * inlet-reachable voxels). Every other cell is timed relative to this, so it
- * preserves the pace of the previous fixed-rate animation.
+ * Baseline animation seconds a hop takes at the *reference* velocity (the median
+ * over the inlet-reachable voxels), before the uniform slowdown is applied.
  */
-const REFERENCE_STEP_DURATION = 0.25;
+const REFERENCE_STEP_DURATION = 1.0;
 
 /**
- * Clamps on per-hop duration. MIN bounds the `while (ball.t >= 1)` loop and
- * prevents teleporting; MAX keeps a zero-velocity cell from reading as a hung
- * animation while still letting the ball eventually advance and retire.
- * Neither is active on the shipped grid (real range 0.105 s – 0.743 s), so they
- * do not compress the real velocity spread.
+ * Fallback duration for invalid or zero-velocity links. Valid flow velocities
+ * are never capped or clamped.
  */
-const MIN_STEP_DURATION = 0.02;
-const MAX_STEP_DURATION = 5.0;
+const INVALID_STEP_DURATION = 5.0;
 
 /** Seconds between spawns at each inlet, independent of local velocity. */
 const SPAWN_INTERVAL = 0.25;
@@ -77,8 +72,9 @@ export class InletFlowRenderer {
   private capacity = 0;
   /**
    * Divides physical crossing times to get watchable animation times. Derived
-   * from the data at construction so any CSV self-calibrates. Stays 1 when there
-   * are no inlets (the constructor returns early and update() bails on `!mesh`).
+   * from the data at construction, then reduced by one global slowdown factor so
+   * every velocity retains the same relative speed. Stays 1 when there are no
+   * inlets (the constructor returns early and update() bails on `!mesh`).
    */
   private timeScale = 1;
   /** Seconds accumulated since each inlet last spawned; parallel to inletIndices. */
@@ -112,6 +108,7 @@ export class InletFlowRenderer {
     if (this.inletIndices.length === 0) return;
 
     this.timeScale = this.computeTimeScale();
+    this.timeScale *= this.computeUniformSlowdownFactor();
 
     // Spawn ceiling. Not `existingCount`: flow paths merge and the data contains
     // cycles (balls in a cycle never reach a dead-end, so they are never removed
@@ -208,7 +205,7 @@ export class InletFlowRenderer {
         // its own rate. Then rescale the carried-over progress, which is still
         // expressed in the previous cell's time units — carrying it unscaled
         // would pop the ball by up to half a voxel at a velocity boundary. Both
-        // durations are clamped, so the ratio is finite. The `while` condition
+        // durations are guaranteed positive and finite, so the ratio is finite. The `while` condition
         // is re-tested afterwards and correctly so: entering a much faster cell
         // can legitimately push the rescaled remainder back over 1.
         const prevStepDuration = ball.stepDuration;
@@ -226,16 +223,17 @@ export class InletFlowRenderer {
   /**
    * Seconds to cross the from→to segment: the ball spends half the gap inside
    * each cell at that cell's own velocity, so the physical time is
-   * d/2/vFrom + d/2/vTo. Converted to animation time by timeScale, then clamped.
+   * d/2/vFrom + d/2/vTo, converted to animation time by timeScale. There is no
+   * per-particle speed cap: the same timeScale applies to every valid hop.
    *
    * Distance comes from the actual world positions rather than voxelSize:
    * `downstream` links are CSV-supplied and not guaranteed axis-adjacent (the
    * shipped file has 254 links spanning 2–10 cells, though none on the paths
    * reachable from its inlets).
    *
-   * A cell with velocity <= 0 stalls at MAX_STEP_DURATION rather than retiring
+   * A cell with velocity <= 0 stalls at INVALID_STEP_DURATION rather than retiring
    * the ball: that makes a data glitch visible as a clot instead of silently
-   * deleting water, and it is self-limiting because the finite clamp still lets
+   * deleting water, and it is self-limiting because the finite fallback still lets
    * the ball advance and be retired by the usual dead-end / MAX_BALL_STEPS path.
    */
   private stepDurationFor(
@@ -247,13 +245,13 @@ export class InletFlowRenderer {
     const vFrom = this.grid.getVelocityFromIndex(fromIdx);
     const vTo = this.grid.getVelocityFromIndex(toIdx);
     // Negated positive test rejects 0, negatives and NaN at once.
-    if (!(vFrom > 0) || !(vTo > 0)) return MAX_STEP_DURATION;
+    if (!(vFrom > 0) || !(vTo > 0)) return INVALID_STEP_DURATION;
     const d = fromPos.distanceTo(toPos);
     const seconds = 0.5 * d * (1 / vFrom + 1 / vTo) / this.timeScale;
     // A NaN reaching instanceMatrix gives the mesh a NaN bounding sphere, which
     // frustum-culls the entire InstancedMesh — every ball vanishes at once.
-    if (!Number.isFinite(seconds)) return MAX_STEP_DURATION;
-    return Math.min(MAX_STEP_DURATION, Math.max(MIN_STEP_DURATION, seconds));
+    if (!(seconds > 0) || !Number.isFinite(seconds)) return INVALID_STEP_DURATION;
+    return seconds;
   }
 
   /**
@@ -310,6 +308,43 @@ export class InletFlowRenderer {
       ? samples[mid]
       : (samples[mid - 1] + samples[mid]) * 0.5;
     return (this.grid.voxelSize / vRef) / REFERENCE_STEP_DURATION;
+  }
+
+  /**
+   * One global factor that makes the previously fastest reachable hop move at
+   * the previous arithmetic-mean speed. Because it scales timeScale once rather
+   * than altering individual hops, every relative velocity remains unchanged.
+   */
+  private computeUniformSlowdownFactor(): number {
+    let speedSum = 0;
+    let maxSpeed = 0;
+    let sampleCount = 0;
+    const total = this.grid.nx * this.grid.ny * this.grid.nz;
+
+    for (const fromIdx of this.collectReachable()) {
+      if (this.grid.isExitIndex(fromIdx)) continue;
+      const toIdx = this.grid.getDownstreamFromIndex(fromIdx);
+      if (toIdx < 0 || toIdx >= total) continue;
+
+      const vFrom = this.grid.getVelocityFromIndex(fromIdx);
+      const vTo = this.grid.getVelocityFromIndex(toIdx);
+      if (!(vFrom > 0) || !(vTo > 0)) continue;
+
+      const fromPos = this.worldPosForIndex(fromIdx);
+      const toPos = this.worldPosForIndex(toIdx);
+      const d = fromPos.distanceTo(toPos);
+      if (!(d > 0)) continue;
+
+      const duration = this.stepDurationFor(fromIdx, toIdx, fromPos, toPos);
+      const speed = d / duration;
+      if (!Number.isFinite(speed)) continue;
+      speedSum += speed;
+      maxSpeed = Math.max(maxSpeed, speed);
+      sampleCount++;
+    }
+
+    if (sampleCount === 0 || !(maxSpeed > 0)) return 1;
+    return (speedSum / sampleCount) / maxSpeed;
   }
 
   /** Restart the flow animation and reset all outlet pass counters. */
