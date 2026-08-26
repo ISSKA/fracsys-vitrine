@@ -26,6 +26,7 @@ if (isMobileDevice()) {
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const btnPlayPause = document.getElementById('btn-play-pause') as HTMLButtonElement;
 const btnReset = document.getElementById('btn-reset') as HTMLButtonElement;
+const btnResetSim = document.getElementById('btn-reset-sim') as HTMLButtonElement;
 const speedSlider = document.getElementById('speed-slider') as HTMLInputElement;
 const speedValue = document.getElementById('speed-value') as HTMLSpanElement;
 const voxelsToggle = document.getElementById('voxels-toggle') as HTMLInputElement;
@@ -36,6 +37,7 @@ const layerCheckboxes = document.getElementById('layerCheckboxes') as HTMLDivEle
 
 btnPlayPause.disabled = true;
 btnReset.disabled = true;
+btnResetSim.disabled = true;
 speedSlider.disabled = true;
 
 let isPaused = false;
@@ -88,6 +90,10 @@ btnReset.addEventListener('click', () => {
   scene.resetView();
 });
 
+btnResetSim.addEventListener('click', () => {
+  inletFlow?.reset();
+});
+
 // --- Scene (persistent across grid loads) ---
 const scene = new SceneManager(canvas);
 setupBackgroundToggle((background) => {
@@ -118,6 +124,7 @@ function loadGrid(data: GridData): void {
   btnPlayPause.disabled = false;
   updatePlayPauseButton();
   btnReset.disabled = false;
+  btnResetSim.disabled = false;
   speedSlider.disabled = false;
 
   const center = grid.getCenter();

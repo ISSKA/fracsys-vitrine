@@ -80,6 +80,7 @@ bind-mount `./public/data` over the served `data/` directory.
 - **Right-click + drag** — pan
 - **Pause / Run** — toggle the simulation
 - **Reset view** — restore the initial camera view without interrupting the simulation
+- **Reset sim.** — restart particles at the top of the grid and reset the particle counters without changing the camera view
 - **Speed slider** — adjust simulation speed from 0.25× to 4×
 
 ### Custom grid format
