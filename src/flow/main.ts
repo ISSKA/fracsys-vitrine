@@ -87,8 +87,6 @@ btnPlayPause.addEventListener('click', () => {
 
 btnReset.addEventListener('click', () => {
   scene.resetView();
-  inletFlow?.reset();
-  tickCounter.textContent = 'Tick: 0';
 });
 
 // --- Scene (persistent across grid loads) ---

@@ -79,7 +79,7 @@ bind-mount `./public/data` over the served `data/` directory.
 - **Scroll wheel** — zoom in/out
 - **Right-click + drag** — pan
 - **Pause / Run** — toggle the simulation
-- **Reset view** — restore the initial camera view and restart particles at the top of the grid
+- **Reset view** — restore the initial camera view without interrupting the simulation
 - **Speed slider** — adjust simulation speed from 0.25× to 4×
 
 ### Custom grid format
