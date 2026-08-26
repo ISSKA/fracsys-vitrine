@@ -75,6 +75,21 @@ export class InletFlowRenderer {
    * from the data at construction, then reduced by one global slowdown factor so
    * every velocity retains the same relative speed. Stays 1 when there are no
    * inlets (the constructor returns early and update() bails on `!mesh`).
+   *
+   * Keep particle timing linear rather than applying a logarithmic velocity
+   * transform. A log scale would make a wide velocity range easier to watch, but
+   * it would destroy the physical ratios in the CSV (a 10x velocity difference
+   * would no longer produce a 10x particle-speed difference). A large timeScale
+   * is expected and numerically safe: it uniformly compresses physical time into
+   * animation time without changing those ratios. Log scaling remains suitable
+   * for colour visualization, but not for motion in this simulation.
+   *
+   * Example from the shipped CSV: voxelSize = 80 and the median velocity on
+   * inlet-reachable paths is about 6.515e-9. At the 1.0-second reference duration,
+   * the baseline scale is (80 / 6.515e-9) / 1.0 = 1.228e10. The data-relative
+   * uniform slowdown factor is about 0.0919, giving a final timeScale of 1.128e9.
+   * Thus one animation second represents roughly 1.128e9 physical seconds, or
+   * 35.8 years, while every ratio between valid particle velocities is preserved.
    */
   private timeScale = 1;
   /** Seconds accumulated since each inlet last spawned; parallel to inletIndices. */
