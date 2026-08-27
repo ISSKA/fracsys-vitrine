@@ -106,8 +106,37 @@ body.flow-viewer canvas { display: block; }
   margin: 5px;
 }
 
-#speed-slider { width: 80px; }
-#speed-value { min-width: 42px; font-variant-numeric: tabular-nums; }
+.slider-control {
+  width: 190px;
+  margin: 12px 5px;
+}
+
+#ui .slider-control label {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 4px;
+  color: #333;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+#speed-slider,
+#inlet-emission-slider {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+}
+
+#speed-value { font-variant-numeric: tabular-nums; }
+
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1px;
+  color: #444;
+  font-size: 11px;
+}
+
 .display-toggle,
 .particle-counter-control { padding: 4px; }
 

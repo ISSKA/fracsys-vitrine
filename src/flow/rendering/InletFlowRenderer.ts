@@ -13,8 +13,8 @@ const REFERENCE_STEP_DURATION = 1.0;
  */
 const INVALID_STEP_DURATION = 5.0;
 
-/** Seconds between spawns at each inlet, independent of local velocity. */
-const SPAWN_INTERVAL = 0.25;
+/** Default particles emitted per simulation second at each inlet. */
+const DEFAULT_EMISSION_RATE = 4;
 
 const OUTLET_LABEL_COLOR = '#ff0000';
 
@@ -51,7 +51,7 @@ interface OutletCounter {
 
 /**
  * Renders a continuous stream of water balls flowing through the network.
- * Each inlet voxel spawns a new ball every SPAWN_INTERVAL seconds; balls walk
+ * Each inlet voxel emits balls at the selected rate; balls walk
  * one cell at a time along `getDownstreamFromIndex`, each hop taking a time
  * derived from the two cells' velocities (see `stepDurationFor`), and are
  * removed when they reach an outlet voxel or a dead-end (downstream == -1).
@@ -92,8 +92,9 @@ export class InletFlowRenderer {
    * 35.8 years, while every ratio between valid particle velocities is preserved.
    */
   private timeScale = 1;
-  /** Seconds accumulated since each inlet last spawned; parallel to inletIndices. */
+  /** Fractional spawn credit accumulated at each inlet; parallel to inletIndices. */
   private spawnAccum: Float32Array;
+  private emissionRate = DEFAULT_EMISSION_RATE;
   private inletIndices: number[] = [];
   private outletCounters = new Map<number, OutletCounter>();
   private tmpMatrix = new THREE.Matrix4();
@@ -145,8 +146,8 @@ export class InletFlowRenderer {
     this.mesh.count = 0;
     this.group.add(this.mesh);
 
-    // Seed a full interval so the stream starts immediately.
-    this.spawnAccum.fill(SPAWN_INTERVAL);
+    // Seed one full credit so the stream starts immediately.
+    this.spawnAccum.fill(1);
     this.spawnAtInlets(0);
     this.writeMatrices();
   }
@@ -165,6 +166,13 @@ export class InletFlowRenderer {
     for (const counter of this.outletCounters.values()) {
       counter.sprite.visible = visible;
     }
+  }
+
+  /** Set the number of particles emitted per second at every inlet. */
+  setEmissionRate(particlesPerSecond: number): void {
+    this.emissionRate = Number.isFinite(particlesPerSecond)
+      ? Math.max(0, particlesPerSecond)
+      : DEFAULT_EMISSION_RATE;
   }
 
   removeFromScene(scene: THREE.Scene): void {
@@ -186,14 +194,14 @@ export class InletFlowRenderer {
     this.group.clear();
   }
 
-  /** Advance ball animations by `dt` seconds, then spawn at any due inlets. */
-  update(dt: number): void {
+  /** Advance ball motion and emission using their independently scaled clocks. */
+  update(motionDt: number, emissionDt = motionDt): void {
     if (!this.mesh) return;
 
     // Iterate in reverse so swap-and-pop removals don't skip elements.
     for (let i = this.balls.length - 1; i >= 0; i--) {
       const ball = this.balls[i];
-      ball.t += dt / ball.stepDuration;
+      ball.t += motionDt / ball.stepDuration;
       while (ball.t >= 1) {
         // Arrive at toIdx.
         ball.fromIdx = ball.toIdx;
@@ -232,7 +240,7 @@ export class InletFlowRenderer {
       }
     }
 
-    this.spawnAtInlets(dt);
+    this.spawnAtInlets(emissionDt);
     this.writeMatrices();
   }
 
@@ -367,16 +375,16 @@ export class InletFlowRenderer {
   reset(): void {
     this.balls = [];
     // timeScale is a grid-invariant calibration and is deliberately not recomputed.
-    // Seed a full interval so the first ball appears immediately rather than
-    // after a SPAWN_INTERVAL gap.
-    this.spawnAccum.fill(SPAWN_INTERVAL);
+    // Seed one full credit so an enabled stream starts immediately. Off remains
+    // truly off, including immediately after a reset.
+    this.spawnAccum.fill(this.emissionRate > 0 ? 1 : 0);
 
     for (const counter of this.outletCounters.values()) {
       counter.count = 0;
       this.drawOutletCounter(counter);
     }
 
-    this.spawnAtInlets(0);
+    if (this.emissionRate > 0) this.spawnAtInlets(0);
     this.writeMatrices();
   }
 
@@ -439,15 +447,14 @@ export class InletFlowRenderer {
   /**
    * Spawn on a fixed per-inlet clock, independent of local velocity. Uniform
    * spawn timing combined with velocity-driven travel means balls bunch up in
-   * slow stretches and stretch apart in fast ones: spacing along a segment is
-   * `stepDuration / SPAWN_INTERVAL` balls, evenly distributed, so they never
-   * overlap and local density ends up inversely proportional to speed.
+   * slow stretches and stretch apart in fast ones, so local density ends up
+   * inversely proportional to speed.
    */
   private spawnAtInlets(dt: number): void {
     for (let k = 0; k < this.inletIndices.length; k++) {
-      this.spawnAccum[k] += dt;
-      while (this.spawnAccum[k] >= SPAWN_INTERVAL) {
-        this.spawnAccum[k] -= SPAWN_INTERVAL;
+      this.spawnAccum[k] += dt * this.emissionRate;
+      while (this.spawnAccum[k] >= 1) {
+        this.spawnAccum[k] -= 1;
         if (this.balls.length >= this.capacity) return;
         const idx = this.inletIndices[k];
         const next = this.grid.getDownstreamFromIndex(idx);

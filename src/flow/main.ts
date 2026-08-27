@@ -29,6 +29,7 @@ const btnReset = document.getElementById('btn-reset') as HTMLButtonElement;
 const btnResetSim = document.getElementById('btn-reset-sim') as HTMLButtonElement;
 const speedSlider = document.getElementById('speed-slider') as HTMLInputElement;
 const speedValue = document.getElementById('speed-value') as HTMLSpanElement;
+const inletEmissionSlider = document.getElementById('inlet-emission-slider') as HTMLInputElement;
 const voxelsToggle = document.getElementById('voxels-toggle') as HTMLInputElement;
 const particlesToggle = document.getElementById('particles-toggle') as HTMLInputElement;
 const particleCounterToggle = document.getElementById('particle-counter-toggle') as HTMLInputElement;
@@ -39,13 +40,13 @@ btnPlayPause.disabled = true;
 btnReset.disabled = true;
 btnResetSim.disabled = true;
 speedSlider.disabled = true;
+inletEmissionSlider.disabled = true;
 
 let isPaused = false;
 
 /**
- * Global time multiplier from the speed slider. Scales the dt handed to the flow
- * renderer, so travel speed and inlet spawn rate stay in step and the per-voxel
- * velocity differences are preserved.
+ * Global time multiplier from the speed slider. It controls particle travel
+ * without changing the independently selected inlet emission rate.
  */
 let speedMultiplier = parseFloat(speedSlider.value) || 1;
 
@@ -59,6 +60,24 @@ speedSlider.addEventListener('input', () => {
   speedMultiplier = parseFloat(speedSlider.value) || 1;
   updateSpeedLabel();
 });
+
+const emissionRates = [0, 1, 2, 4] as const;
+const emissionRateLabels = ['Off', 'Low', 'Medium', 'High'] as const;
+
+function selectedEmissionRate(): number {
+  return emissionRates[Number(inletEmissionSlider.value)] ?? emissionRates[3];
+}
+
+function updateEmissionRate(): void {
+  const setting = Number(inletEmissionSlider.value);
+  inletEmissionSlider.setAttribute(
+    'aria-valuetext',
+    emissionRateLabels[setting] ?? emissionRateLabels[3],
+  );
+  inletFlow?.setEmissionRate(selectedEmissionRate());
+}
+
+inletEmissionSlider.addEventListener('input', updateEmissionRate);
 
 particleCounterToggle.addEventListener('change', () => {
   inletFlow?.setParticleCounterVisible(particleCounterToggle.checked);
@@ -117,6 +136,7 @@ function loadGrid(data: GridData): void {
   voxelRenderer.addToScene(scene.scene);
 
   inletFlow = new InletFlowRenderer(grid);
+  inletFlow.setEmissionRate(selectedEmissionRate());
   inletFlow.setParticlesVisible(particlesToggle.checked);
   inletFlow.setParticleCounterVisible(particleCounterToggle.checked);
   inletFlow.addToScene(scene.scene);
@@ -126,6 +146,7 @@ function loadGrid(data: GridData): void {
   btnReset.disabled = false;
   btnResetSim.disabled = false;
   speedSlider.disabled = false;
+  inletEmissionSlider.disabled = false;
 
   const center = grid.getCenter();
   const radius = grid.getRadius();
@@ -154,7 +175,7 @@ function animate(): void {
   const now = performance.now();
   const dt = Math.min(0.1, (now - lastTime) / 1000);  // cap dt at 100ms to avoid huge jumps after tab-switch
   lastTime = now;
-  if (inletFlow && !isPaused) inletFlow.update(dt * speedMultiplier);
+  if (inletFlow && !isPaused) inletFlow.update(dt * speedMultiplier, dt);
   scene.render();
 }
 
