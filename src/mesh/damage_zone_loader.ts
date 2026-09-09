@@ -9,13 +9,11 @@ import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import { createScalarBar, DEFAULT_SCALAR_BAR_CONFIG, type ScalarBarManager } from './scalar_bar.js';
 import type { FileLoaderAPI } from './fracture_zone_loader.js';
-import { appConfig } from '../config.js';
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-const API_ENDPOINT = appConfig.mesh.downloadApiEndpoint;
 const DAMAGE_ZONE_FILENAMES = {
   full: 'damage_zone.vtp',
   optimized: 'damage_zone_optimized.vtp'
@@ -283,22 +281,13 @@ async function loadDamageZoneFromCloud(filename: string): Promise<void> {
 
   showProgress();
   try {
-    // Step 1: Get signed URL from API
-    const response = await fetch(`${API_ENDPOINT}?key=${filename}`);
-    if (!response.ok) {
-      throw new Error(`Failed to get signed URL: ${response.statusText}`);
+    const file = await fetch(`/data/${filename}`);
+    if (!file.ok) {
+      throw new Error(`Failed to download ${filename}: ${file.statusText}`);
     }
 
-    const data = await response.json() as { signedUrl: string };
-
-    // Step 2: Download the file from S3, streaming to track progress
-    const fileResponse = await fetch(data.signedUrl);
-    if (!fileResponse.ok) {
-      throw new Error(`Failed to download ${filename}: ${fileResponse.statusText}`);
-    }
-
-    const contentLength = Number(fileResponse.headers.get('Content-Length')) || 0;
-    const reader = fileResponse.body!.getReader();
+    const contentLength = Number(file.headers.get('Content-Length')) || 0;
+    const reader = file.body!.getReader();
     const chunks: Uint8Array[] = [];
     let received = 0;
 

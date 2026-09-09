@@ -5,7 +5,6 @@ import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransf
 import { createScalarBar, DEFAULT_SCALAR_BAR_CONFIG, SECONDARY_SCALAR_BAR_CONFIG, TERTIARY_SCALAR_BAR_CONFIG, type ScalarBarManager } from './scalar_bar.js';
 import { type ColorMap, COLOR_MAPS, colorMapToCss } from './color_maps.js';
 import { LAYERS, type LayerConfig } from './layers.config.js';
-import { appConfig } from '../config.js';
 
 // ============================================================================
 // Types
@@ -47,8 +46,6 @@ export interface FileLoaderAPI {
 // ============================================================================
 // File Loading
 // ============================================================================
-
-const API_ENDPOINT = appConfig.mesh.downloadApiEndpoint;
 
 export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoaderAPI {
   const { renderer, picker, renderWindow } = dependencies;
@@ -272,24 +269,12 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
 
   async function downloadLayerFromCloud(layerId: string, filename: string): Promise<void> {
     try {
-      // Step 1: Get signed URL from API
-      const response = await fetch(`${API_ENDPOINT}?key=${filename}`);
-      if (!response.ok) {
-        throw new Error(`Failed to get signed URL for ${filename}: ${response.statusText}`);
+      const file = await fetch(`/data/${filename}`);
+      if (!file.ok) {
+        throw new Error(`Failed to download ${filename}: ${file.statusText}`);
       }
 
-      const data = await response.json() as { signedUrl: string };
-      const signedUrl = data.signedUrl;
-
-      // Step 2: Download the file from S3 using signed URL
-      const fileResponse = await fetch(signedUrl);
-      if (!fileResponse.ok) {
-        throw new Error(`Failed to download ${filename}: ${fileResponse.statusText}`);
-      }
-
-      const fileContents = await fileResponse.arrayBuffer();
-
-      // Step 3: Load the layer
+      const fileContents = await file.arrayBuffer();
       loadLayerData(layerId, fileContents);
 
     } catch (error) {
