@@ -37,7 +37,7 @@ jobs:
           sshpass -e sftp \
             -o StrictHostKeyChecking=no \
             "${{ secrets.SFTP_USER }}@${{ secrets.SFTP_HOST }}" <<EOF
-          cd /sites/fracsys.isska.ch
+          cd sites/fracsys.isska.ch
           put -r dist/*
           bye
           EOF
