@@ -25,12 +25,19 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Install sshpass
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sshpass
+
       - name: Deploy via SFTP
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
-        with:
-          username: ${{ secrets.SFTP_USER }}
-          server: ${{ secrets.SFTP_HOST }}
-          password: ${{ secrets.SFTP_PASSWORD }}
-          local_path: dist/*
-          remote_path: /sites/fracsys.isska.ch
-          delete_remote_files_when_updating: true
+        env:
+          SSHPASS: ${{ secrets.SFTP_PASSWORD }}
+        run: |
+          sshpass -e sftp \
+            -o StrictHostKeyChecking=no \
+            "${{ secrets.SFTP_USER }}@${{ secrets.SFTP_HOST }}" <<EOF
+          cd /sites/fracsys.isska.ch
+          put -r dist/*
+          bye
+          EOF
