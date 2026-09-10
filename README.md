@@ -7,14 +7,12 @@ FracSYS Vitrine is one Vite multi-page application for exploring FracSYS models 
 | [Mesh Viewer](docs/mesh-viewer.md) | `/` | Fracture- and damage-zone meshes rendered with VTK.js |
 | [Flow Viewer](docs/flow-viewer.md) | `/flow/` | Particle-flow simulation rendered with Three.js |
 
-The repository also contains [optional AWS CDK infrastructure](infra/aws/README.md) for private model storage and signed upload/download URLs. See the [AWS deployment guide](docs/aws/AWS_DEPLOYMENT.md) for deployment details.
-
 ## Prerequisites
 
 - Node.js 20.19 or a supported newer release
 - npm
 - Docker or Podman (optional)
-- Python 3.12+, AWS CLI, and AWS CDK CLI (only for the mesh viewer's AWS infrastructure)
+- Python 3.12+
 
 ## Development
 
@@ -64,8 +62,7 @@ fracsys-vitrine/
 ├── Dockerfile             # Unified production image
 ├── nginx.conf             # Unified static-server configuration
 ├── package.json           # Dependencies, toolchain, and commands
-├── infra/aws/             # Separately deployed AWS CDK project
-└── docs/                  # Viewer and AWS documentation
+└── docs/                  # Viewer documentation
 ```
 
 Useful checks:
@@ -86,14 +83,13 @@ FracSYS Vitrine est une seule application Vite multipage permettant d'explorer l
 | Visionneuse de maillages | `/` | Maillages des zones de fracture et d'endommagement rendus avec VTK.js |
 | Visionneuse d'écoulement | `/flow/` | Simulation de particules rendue avec Three.js |
 
-Le dépôt contient également une infrastructure AWS CDK facultative pour le stockage privé des modèles et la génération d'URL signées.
 
 ## Prérequis
 
 - Node.js 20.19 ou une version ultérieure prise en charge
 - npm
 - Docker ou Podman (facultatif)
-- Python 3.12+, AWS CLI et AWS CDK CLI (uniquement pour l'infrastructure AWS)
+- Python 3.12+
 
 ## Développement
 

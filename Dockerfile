@@ -9,10 +9,8 @@ WORKDIR /app
 # root. Set it when deploying the complete app below a sub-path.
 ARG DEPLOY_BASE=/
 ARG VITE_DEFAULT_GRID_FILENAME=flow_network_voxels.csv
-ARG VITE_MESH_DOWNLOAD_API_ENDPOINT=https://xhx5lqfvq1.execute-api.eu-central-1.amazonaws.com/prod/download-url
 ENV DEPLOY_BASE=$DEPLOY_BASE \
-    VITE_DEFAULT_GRID_FILENAME=$VITE_DEFAULT_GRID_FILENAME \
-    VITE_MESH_DOWNLOAD_API_ENDPOINT=$VITE_MESH_DOWNLOAD_API_ENDPOINT
+    VITE_DEFAULT_GRID_FILENAME=$VITE_DEFAULT_GRID_FILENAME
 
 # Dependencies first so edits to src/ do not invalidate the install layer.
 COPY package.json package-lock.json ./

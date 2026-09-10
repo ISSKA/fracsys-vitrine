@@ -8,7 +8,6 @@ services:
       args:
         DEPLOY_BASE: ${DEPLOY_BASE:-/}
         VITE_DEFAULT_GRID_FILENAME: ${VITE_DEFAULT_GRID_FILENAME:-flow_network_voxels.csv}
-        VITE_MESH_DOWNLOAD_API_ENDPOINT: ${VITE_MESH_DOWNLOAD_API_ENDPOINT:-https://xhx5lqfvq1.execute-api.eu-central-1.amazonaws.com/prod/download-url}
     image: fracsys-vitrine:latest
     ports:
       - "8080:80"
