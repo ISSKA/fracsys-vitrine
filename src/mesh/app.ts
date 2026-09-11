@@ -11,11 +11,6 @@ import { setupBackgroundToggle } from '../background-toggle';
 // Constants
 // ============================================================================
 
-const REPRESENTATION_MODES = {
-  WIREFRAME: 1,
-  SURFACE: 2
-} as const;
-
 const TOOLTIP_OFFSET = 5;
 const PICKER_TOLERANCE = 0.1;
 
@@ -69,12 +64,6 @@ syncCenterOfRotation();
 const picker = vtkCellPicker.newInstance();
 picker.setPickFromList(1);
 picker.setTolerance(PICKER_TOLERANCE);
-
-// ============================================================================
-// State
-// ============================================================================
-
-let wireframeMode = false;
 
 // ============================================================================
 // Helper Functions
@@ -299,21 +288,6 @@ window.resetCamera = function(): void {
   }
 };
 
-window.toggleWireframe = function(): void {
-  if (fileLoader.isInitialized()) {
-    wireframeMode = !wireframeMode;
-    const mode = wireframeMode ? REPRESENTATION_MODES.WIREFRAME : REPRESENTATION_MODES.SURFACE;
-
-    // Apply wireframe mode to all actors
-    for (const layerId in fileLoader.layers) {
-      const layer = fileLoader.layers[layerId];
-      layer.actor.getProperty().setRepresentation(mode);
-    }
-
-    renderWindow.render();
-  }
-};
-
 // ============================================================================
 // Initialization
 // ============================================================================
@@ -377,7 +351,6 @@ async function displayDataset(dataset: Dataset): Promise<void> {
 fractureZoneButton?.addEventListener('click', () => void displayDataset('fracture'));
 damageZoneButton?.addEventListener('click', () => void displayDataset('damage'));
 document.getElementById('btn-reset-camera')?.addEventListener('click', () => window.resetCamera?.());
-document.getElementById('btn-toggle-wireframe')?.addEventListener('click', () => window.toggleWireframe?.());
 
 // Load the default dataset immediately so the viewer is populated on startup.
 void displayDataset('fracture');
