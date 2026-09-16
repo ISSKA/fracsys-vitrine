@@ -140,23 +140,6 @@ body.flow-viewer canvas { display: block; }
 .display-toggle,
 .particle-counter-control { padding: 4px; }
 
-.collapsible-toggle {
-  cursor: pointer;
-  user-select: none;
-  margin: 8px 0;
-}
-
-.collapsible-toggle::before {
-  content: '▾ ';
-  font-size: 24px;
-}
-
-.collapsible-toggle.collapsed::before {
-  content: '▸ ';
-}
-
-#layerCheckboxes.collapsed { display: none; }
-
 #viewer-legends {
   position: absolute;
   bottom: 10px;
@@ -198,8 +181,6 @@ body.flow-viewer canvas { display: block; }
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  background: rgba(211, 211, 211, 0.85);
-  border-radius: 5px;
   font-family: Arial, sans-serif;
   color: #000;
 }

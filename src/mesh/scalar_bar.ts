@@ -50,8 +50,9 @@ export function createScalarBar(
   const panel = document.createElement('div');
   panel.className = 'scalar-bar-panel';
   if (config.leftPx !== undefined) {
-    panel.style.left = `${config.leftPx}px`;
+    panel.style.left = `calc(var(--shell-sidebar) + ${config.leftPx}px)`;
   }
+  panel.classList.add('viewer-legend');
   if (config.topPx !== undefined) {
     panel.style.top = `${config.topPx}px`;
   }

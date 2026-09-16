@@ -4,7 +4,7 @@ import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import { createScalarBar, DEFAULT_SCALAR_BAR_CONFIG, SECONDARY_SCALAR_BAR_CONFIG, TERTIARY_SCALAR_BAR_CONFIG, type ScalarBarManager } from './scalar_bar.js';
 import { type ColorMap, COLOR_MAPS, colorMapToCss } from './color_maps.js';
-import { LAYERS, type LayerConfig } from './layers.config.js';
+import { LAYERS, type LayerConfig } from '../layers.config.js';
 
 // ============================================================================
 // Types
@@ -189,10 +189,10 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
         label = 'Hydraulic Head (m)';
         break;
       case 'Z0':
-        label = 'Height (m)';
+        label = 'Hydraulic head (m)';
         break;
       default:
-        label = `${arrayName} (m³/s)`;
+        label = `Discharge (m³/s)`;
     }
     // var label = arrayName === 'H' ? 'Hydraulic Head (m)' : `${arrayName} (m³/s)`;
     updateScalarBar(lookupTable, label, slot, colorMapToCss(colorMap));
@@ -233,7 +233,8 @@ export function setupFileLoader(dependencies: FileLoaderDependencies): FileLoade
     }
 
     if (layerId === 'isoline_segments') {
-      applyColorMapping(layer, 'Z0', false, COLOR_MAPS.roseWhite, 2);
+      applyDisplayColorFromFieldData(layer);
+      // applyColorMapping(layer, 'Z0', false, COLOR_MAPS.roseWhite, 2);
     }
 
     // Add actor to renderer if not already added

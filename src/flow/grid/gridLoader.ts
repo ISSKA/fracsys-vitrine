@@ -52,7 +52,17 @@ export function generateSampleGrid(nx: number, ny: number, nz: number): GridData
   const saturated = new Array<boolean>(total).fill(false);
   const inlets = new Array<boolean>(total).fill(false);
   const downstream = new Array<number>(total).fill(-1);
-  return { dimensions: { nx, ny, nz }, voxelSize: 1.0, velocity, exists, exits, saturated, inlets, downstream };
+  return {
+    dimensions: { nx, ny, nz },
+    voxelSize: 1.0,
+    origin: { x: 0, y: 0, z: 0 },
+    velocity,
+    exists,
+    exits,
+    saturated,
+    inlets,
+    downstream,
+  };
 }
 
 interface CsvRow {
@@ -160,5 +170,15 @@ export function parseGridCSV(csvText: string): GridData {
     downstream[fromIdx] = toIdx ?? -1;
   }
 
-  return { dimensions: { nx, ny, nz }, voxelSize, velocity, exists, exits, saturated, inlets, downstream };
+  return {
+    dimensions: { nx, ny, nz },
+    voxelSize,
+    origin: { x: xs[0], y: ys[0], z: zs[0] },
+    velocity,
+    exists,
+    exits,
+    saturated,
+    inlets,
+    downstream,
+  };
 }

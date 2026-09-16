@@ -10,13 +10,13 @@ export class SceneManager {
 
   constructor(canvas: HTMLCanvasElement) {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xffffff);
+    this.scene.background = null;
 
     this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100000);
     this.camera.position.set(20, 25, 20);
 
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    this.onResize();
     this.renderer.setPixelRatio(window.devicePixelRatio);
 
     this.controls = new OrbitControls(this.camera, canvas);
@@ -33,7 +33,10 @@ export class SceneManager {
   }
 
   setBackground(color: number): void {
-    this.scene.background = new THREE.Color(color);
+    // The VTK layer owns the shared viewer background. Keep this canvas transparent
+    // so mesh and Three.js layers can be composed in the same scene.
+    void color;
+    this.scene.background = null;
   }
 
   /** Add labeled coordinate axes at the given origin, scaled to the grid. */
@@ -115,10 +118,29 @@ export class SceneManager {
     this.controls.reset();
   }
 
+  getCameraState(): { position: THREE.Vector3; target: THREE.Vector3; up: THREE.Vector3; fov: number } {
+    return {
+      position: this.camera.position.clone(),
+      target: this.controls.target.clone(),
+      up: this.camera.up.clone(),
+      fov: this.camera.fov,
+    };
+  }
+
   private onResize(): void {
-    this.camera.aspect = window.innerWidth / window.innerHeight;
+    const width = this.canvasWidth();
+    const height = this.canvasHeight();
+    this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setSize(width, height, false);
+  }
+
+  private canvasWidth(): number {
+    return this.renderer.domElement.clientWidth || window.innerWidth;
+  }
+
+  private canvasHeight(): number {
+    return this.renderer.domElement.clientHeight || window.innerHeight;
   }
 
   render(): void {

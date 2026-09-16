@@ -57,7 +57,6 @@ runtime environment variables — changing one requires rebuilding the image.
 | --- | --- | --- |
 | `DEPLOY_BASE` | `/` | Public base path for both pages. Set it when hosting the application under a sub-path. |
 | `VITE_DEFAULT_GRID_FILENAME` | `flow_network_voxels.csv` | Grid CSV loaded on startup, resolved relative to `public/data/`. |
-| `VITE_MESH_DOWNLOAD_API_ENDPOINT` | Current FracSYS API | Signed-download API used by the Mesh Viewer. |
 
 ```bash
 docker build --build-arg DEPLOY_BASE=/preview/ -t fracsys-vitrine .

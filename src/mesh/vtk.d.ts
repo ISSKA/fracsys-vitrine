@@ -155,7 +155,6 @@ declare module '@kitware/vtk.js/Rendering/Core/ScalarBarActor' {
 // Extend Window interface for global functions
 interface Window {
   resetCamera?: () => void;
-  toggleWireframe?: () => void;
   downloadFromCloud?: () => Promise<boolean>;
   showFractureZone?: () => Promise<boolean>;
   showDamageZone?: () => Promise<boolean>;

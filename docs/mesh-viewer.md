@@ -82,7 +82,6 @@ The nginx container serves the unified root `dist/` directory on port 80.
 - Interactive controls: rotate (left mouse), pan (right mouse), roll (Shift + left mouse), zoom (scroll wheel)
 - Cell picking with metadata tooltip (H, Q, Type values)
 - Local file upload (.vtp files)
-- Wireframe / surface rendering toggle
 - Colour bar overlay with hydraulic head scale
 
 ## Technology Stack
