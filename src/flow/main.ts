@@ -7,6 +7,8 @@ import { InletFlowRenderer } from './rendering/InletFlowRenderer';
 import { GridData } from './types';
 import { appConfig } from '../config';
 import { setupBackgroundToggle } from '../background-toggle';
+import type { ViewerTabDefinition } from '../viewer-tabs';
+import { TAB_LAYER_DEFAULTS } from '../layers.config';
 
 // --- Mobile warning ---
 // Touch-primary input on a small screen → likely a phone, unsuited for the
@@ -16,31 +18,28 @@ function isMobileDevice(): boolean {
     && window.matchMedia('(max-width: 900px)').matches;
 }
 if (isMobileDevice()) {
-  const warning = document.getElementById('mobile-warning') as HTMLDivElement;
-  const dismiss = document.getElementById('mobile-warning-dismiss') as HTMLButtonElement;
+  const warning = document.getElementById('mobile-warning') as HTMLDivElement | null;
+  const dismiss = document.getElementById('mobile-warning-dismiss') as HTMLButtonElement | null;
+  if (warning && dismiss) {
   warning.hidden = false;
   dismiss.addEventListener('click', () => { warning.hidden = true; });
+  }
 }
 
 // --- DOM ---
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const btnPlayPause = document.getElementById('btn-play-pause') as HTMLButtonElement;
-const btnReset = document.getElementById('btn-reset') as HTMLButtonElement;
+const btnResetCamera = document.getElementById('btn-reset-camera') as HTMLButtonElement;
 const btnResetSim = document.getElementById('btn-reset-sim') as HTMLButtonElement;
 const speedSlider = document.getElementById('speed-slider') as HTMLInputElement;
 const speedValue = document.getElementById('speed-value') as HTMLSpanElement;
-const inletEmissionSlider = document.getElementById('inlet-emission-slider') as HTMLInputElement;
-const voxelsToggle = document.getElementById('voxels-toggle') as HTMLInputElement;
-const particlesToggle = document.getElementById('particles-toggle') as HTMLInputElement;
-const particleCounterToggle = document.getElementById('particle-counter-toggle') as HTMLInputElement;
-const layerControlsToggle = document.getElementById('layerControlsToggle') as HTMLHeadingElement;
-const layerCheckboxes = document.getElementById('layerCheckboxes') as HTMLDivElement;
+const particleCounterParameter = document.getElementById('layer-particle-counter') as HTMLInputElement;
+
+let pointerDown: { x: number; y: number } | null = null;
 
 btnPlayPause.disabled = true;
-btnReset.disabled = true;
 btnResetSim.disabled = true;
 speedSlider.disabled = true;
-inletEmissionSlider.disabled = true;
 
 let isPaused = false;
 
@@ -61,41 +60,6 @@ speedSlider.addEventListener('input', () => {
   updateSpeedLabel();
 });
 
-const emissionRates = [0, 1, 2, 4] as const;
-const emissionRateLabels = ['Off', 'Low', 'Medium', 'High'] as const;
-
-function selectedEmissionRate(): number {
-  return emissionRates[Number(inletEmissionSlider.value)] ?? emissionRates[3];
-}
-
-function updateEmissionRate(): void {
-  const setting = Number(inletEmissionSlider.value);
-  inletEmissionSlider.setAttribute(
-    'aria-valuetext',
-    emissionRateLabels[setting] ?? emissionRateLabels[3],
-  );
-  inletFlow?.setEmissionRate(selectedEmissionRate());
-}
-
-inletEmissionSlider.addEventListener('input', updateEmissionRate);
-
-particleCounterToggle.addEventListener('change', () => {
-  inletFlow?.setParticleCounterVisible(particleCounterToggle.checked);
-});
-
-voxelsToggle.addEventListener('change', () => {
-  voxelRenderer?.setVisible(voxelsToggle.checked);
-});
-
-particlesToggle.addEventListener('change', () => {
-  inletFlow?.setParticlesVisible(particlesToggle.checked);
-});
-
-layerControlsToggle.addEventListener('click', () => {
-  layerControlsToggle.classList.toggle('collapsed');
-  layerCheckboxes.classList.toggle('collapsed');
-});
-
 function updatePlayPauseButton(): void {
   btnPlayPause.textContent = isPaused ? 'Resume' : 'Pause';
 }
@@ -105,7 +69,7 @@ btnPlayPause.addEventListener('click', () => {
   updatePlayPauseButton();
 });
 
-btnReset.addEventListener('click', () => {
+btnResetCamera.addEventListener('click', () => {
   scene.resetView();
 });
 
@@ -113,8 +77,30 @@ btnResetSim.addEventListener('click', () => {
   inletFlow?.reset();
 });
 
+particleCounterParameter.addEventListener('change', () => {
+  inletFlow?.setParticleCounterVisible(particleCounterParameter.checked);
+});
+
 // --- Scene (persistent across grid loads) ---
 const scene = new SceneManager(canvas);
+
+canvas.addEventListener('pointerdown', (event) => {
+  pointerDown = { x: event.clientX, y: event.clientY };
+});
+
+canvas.addEventListener('pointerup', (event) => {
+  if (!pointerDown) return;
+  const distance = Math.hypot(event.clientX - pointerDown.x, event.clientY - pointerDown.y);
+  pointerDown = null;
+  if (distance > 5) return;
+  document.dispatchEvent(new CustomEvent('viewer-pick', {
+    detail: { clientX: event.clientX, clientY: event.clientY },
+  }));
+});
+
+canvas.addEventListener('pointercancel', () => {
+  pointerDown = null;
+});
 setupBackgroundToggle((background) => {
   scene.setBackground(background === 'black' ? 0x000000 : 0xffffff);
 });
@@ -125,6 +111,39 @@ let grid: VoxelGrid | undefined;
 let voxelRenderer: VoxelRenderer | undefined;
 let inletFlow: InletFlowRenderer | undefined;
 
+function applyTabPresentation(tabId: ViewerTabDefinition['id']): void {
+  const defaults = TAB_LAYER_DEFAULTS[tabId];
+  voxelRenderer?.setVisible(defaults.includes('voxels'));
+  voxelRenderer?.setDamageZoneVisible(defaults.includes('damage-zone'));
+  inletFlow?.setParticlesVisible(defaults.includes('particles'));
+  inletFlow?.setParticleCounterVisible(
+    tabId === 'dynamic-flow' && particleCounterParameter.checked,
+  );
+}
+
+function publishCameraState(): void {
+  if (!grid) return;
+  document.dispatchEvent(new CustomEvent('viewer-camera-change', {
+    detail: {
+      ...scene.getCameraState(),
+      origin: grid.origin,
+      voxelSize: grid.voxelSize,
+    },
+  }));
+}
+
+document.addEventListener('viewer-tab-change', (event) => {
+  const tab = (event as CustomEvent<ViewerTabDefinition>).detail;
+  applyTabPresentation(tab.id);
+});
+
+document.addEventListener('viewer-layer-change', (event) => {
+  const { id, visible } = (event as CustomEvent<{ id: string; visible: boolean }>).detail;
+  if (id === 'voxels') voxelRenderer?.setVisible(visible);
+  if (id === 'damage-zone') voxelRenderer?.setDamageZoneVisible(visible);
+  if (id === 'flow') inletFlow?.setParticlesVisible(visible);
+});
+
 function loadGrid(data: GridData): void {
   grid = new VoxelGrid(data);
 
@@ -132,21 +151,18 @@ function loadGrid(data: GridData): void {
   if (inletFlow) inletFlow.removeFromScene(scene.scene);
 
   voxelRenderer = new VoxelRenderer(grid);
-  voxelRenderer.setVisible(voxelsToggle.checked);
   voxelRenderer.addToScene(scene.scene);
 
   inletFlow = new InletFlowRenderer(grid);
-  inletFlow.setEmissionRate(selectedEmissionRate());
-  inletFlow.setParticlesVisible(particlesToggle.checked);
-  inletFlow.setParticleCounterVisible(particleCounterToggle.checked);
+  inletFlow.setParticleCounterVisible(particleCounterParameter.checked);
   inletFlow.addToScene(scene.scene);
   isPaused = false;
   btnPlayPause.disabled = false;
   updatePlayPauseButton();
-  btnReset.disabled = false;
+  btnResetCamera.disabled = false;
   btnResetSim.disabled = false;
   speedSlider.disabled = false;
-  inletEmissionSlider.disabled = false;
+  applyTabPresentation((document.body.dataset.activeTab as ViewerTabDefinition['id']) ?? 'flow-network');
 
   const center = grid.getCenter();
   const radius = grid.getRadius();
@@ -158,6 +174,7 @@ function loadGrid(data: GridData): void {
 
   const axisLength = radius * 0.4;
   scene.addAxes(new THREE.Vector3(0, 0, 0), axisLength);
+  publishCameraState();
 }
 
 fetch(defaultGridUrl)
@@ -176,6 +193,7 @@ function animate(): void {
   const dt = Math.min(0.1, (now - lastTime) / 1000);  // cap dt at 100ms to avoid huge jumps after tab-switch
   lastTime = now;
   if (inletFlow && !isPaused) inletFlow.update(dt * speedMultiplier, dt);
+  publishCameraState();
   scene.render();
 }
 
