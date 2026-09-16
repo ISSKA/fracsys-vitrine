@@ -44,23 +44,33 @@ body.mesh-viewer {
     min-width: 200px;
     max-width: 300px;
     line-height: 1.2;
-    pointer-events: none;
+    pointer-events: auto;
     z-index: 1000;
     display: none;
+}
+
+.metadata-close {
+    float: right;
+    margin: -6px -10px 4px 8px;
+    padding: 0 4px;
+    background: transparent !important;
+    color: #333 !important;
+    font-size: 18px;
+    line-height: 1;
 }
 
 .mesh-viewer button {
     margin: 5px;
     padding: 8px 12px;
     cursor: pointer;
-    background: #4CAF50;
+    background: var(--shell-accent);
     color: white;
     border: none;
     border-radius: 3px;
 }
 
 .mesh-viewer button:hover {
-    background: #45a049;
+    background: var(--shell-muted);
 }
 
 .mesh-viewer button:disabled {
@@ -216,28 +226,10 @@ body.mesh-viewer {
     to { transform: rotate(360deg); }
 }
 
-.collapsible-toggle {
-  cursor: pointer;
-  user-select: none;
-  margin: 0 0 8px 0;
-}
-
-.collapsible-toggle::before {
-  content: '▾ ';
-  font-size: 24px;
-}
-
-.collapsible-toggle.collapsed::before {
-  content: '▸ ';
-  font-size: 24px;
-}
-
-#layerCheckboxes.collapsed {
-  display: none;
-}
-
 .scalar-bar-panel {
-  position: absolute;
+    position: fixed;
+    top: auto !important;
+    bottom: 10px;
   height: 40%;
   width: 80px;
   background-color: rgba(211, 211, 211, 0.85);

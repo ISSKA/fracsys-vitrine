@@ -6,6 +6,7 @@ export class VoxelGrid {
   readonly ny: number;
   readonly nz: number;
   readonly voxelSize: number;
+  readonly origin: { x: number; y: number; z: number };
   private velocity: Float32Array;
   private existsMask: Uint8Array;
   private exitMask: Uint8Array;
@@ -18,6 +19,7 @@ export class VoxelGrid {
     this.ny = data.dimensions.ny;
     this.nz = data.dimensions.nz;
     this.voxelSize = data.voxelSize;
+    this.origin = data.origin;
 
     const expected = this.nx * this.ny * this.nz;
     if (data.velocity.length !== expected) {
