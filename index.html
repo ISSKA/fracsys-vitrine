@@ -61,7 +61,22 @@ Visualisation of the fractured aquifer surrounding the Cleuson-Dixence Gallery (
                 </div>
                 <label class="display-toggle"><input id="layer-particle-counter" type="checkbox" checked /> Particle counter</label>
             </div>
+            <div class="sidebar-bottom">
+                <h4 class="panel-heading">FracSYS project 2024-2026</h4>
+
+                <button id="about-open" class="about-open" type="button">About</button>
+
+                <footer class="sidebar-footer" aria-label="Project links">
+                    <a href="https://www.crealp.ch/en/" aria-label="Center for research on the alpine environment"><img src="/img/crealp.png"/></a>
+                    <a href="https://www.isska.ch/en/" aria-label="Swiss Institute of Speleology and Karst Studies"><img src="/img/isska.png"/></a>
+                    <a href="https://www.fhnw.ch/en/computer-science/about/institutes/data-science" aria-label="University of Applied Sciences and Arts Northwestern Switzerland - Institute for Data Science"><img src="/img/fhnw.png"/></a>
+                </footer>
+            </div>
         </aside>
+    <dialog id="about-dialog" class="about-dialog" aria-labelledby="about-dialog-title">
+        <h2 id="about-dialog-title">About this prototype</h2>
+        <p>FracSYS Prototype is the first demonstrator of FracSYS's functionalities. It applies these features to the case study of the Cleuson-Dixence gallery in Valais, Switzerland, modelling the faults that intersect the gallery and water inflow. More information on the methodology is available on the FracSYS homepage. The conceptual geological model of Cleuson-Dixence is available on <a href="https://www.visualkarsys.com/vk/project/2453" target="_blank">Visual KarSYS</a>. The FracSYS prototype was developed in collaboration with SISKA, CREALP and i4DS.</p>
+    </dialog>
     <div id="info">
         Controls: Rotate (left mouse button), Pan (right mouse button), Roll (Shift + left mouse button), Zoom (mouse wheel)
     </div>
@@ -102,6 +117,7 @@ Visualisation of the fractured aquifer surrounding the Cleuson-Dixence Gallery (
         </main>
 
         <script type="module" src="./src/viewer-tabs.ts"></script>
+    <script type="module" src="./src/about-modal.ts"></script>
     <script type="module" src="./src/mesh/app.ts"></script>
         <script type="module" src="./src/flow/main.ts"></script>
 </body>
