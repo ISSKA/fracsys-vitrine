@@ -84,10 +84,25 @@ Visualisation of the fractured aquifer surrounding the Cleuson-Dixence Gallery (
                 <button type="button" role="tab" data-viewer-tab="productive-zone" aria-selected="false">Productive zone</button>
                 <button type="button" role="tab" data-viewer-tab="dynamic-flow" aria-selected="false">Dynamic flow</button>
             </nav>
-            
+            <div id="dynamic-flow-legend" class="viewer-legend" data-legend-panel="dynamic-flow" hidden>
+                <div class="legend-item"><span class="legend-swatch legend-inlet"></span>Recharge point</div>
+                <div class="legend-item"><span class="legend-swatch legend-outlet"></span>Outflow point</div>
+                <div id="velocity-legend" aria-label="Saturated velocity colour scale">
+                    <div class="velocity-legend-title">Flow speed</div>
+                    <div class="velocity-legend-scale">
+                        <div class="velocity-legend-gradient"></div>
+                        <div class="velocity-legend-labels">
+                            <span>High</span>
+                            <span>Ball speed &prop; velocity (linear)</span>
+                            <span>Low</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <script type="module" src="./src/viewer-tabs.ts"></script>
     <script type="module" src="./src/mesh/app.ts"></script>
+        <script type="module" src="./src/flow/main.ts"></script>
 </body>
 </html>
