@@ -12,7 +12,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         mesh: fromRoot('./index.html'),
-        flow: fromRoot('./flow/index.html'),
       },
     },
   },
