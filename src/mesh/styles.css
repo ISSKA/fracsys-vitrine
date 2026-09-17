@@ -60,7 +60,6 @@ body.mesh-viewer {
 }
 
 .mesh-viewer button {
-    margin: 5px;
     padding: 8px 12px;
     cursor: pointer;
     background: var(--shell-accent);

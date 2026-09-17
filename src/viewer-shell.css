@@ -83,19 +83,11 @@
 #ui button,
 #ui #simulation-controls .simulation-option {
   margin: 0;
-  padding: 8px 10px;
-  border: 1px solid var(--shell-line);
-  border-radius: 3px;
-  background: transparent;
-  color: var(--shell-accent);
-  font: 600 12px Arial, sans-serif;
 }
 #ui #simulation-controls .simulation-option:first-child,
 #ui #simulation-controls .simulation-option:last-child { border-radius: 3px; }
 #ui #simulation-controls .simulation-option + .simulation-option { margin-left: 4px; }
-#layerCheckboxes button:hover,
-#ui button:hover,
-#ui #simulation-controls .simulation-option:hover { background: #e8eee9; }
+
 
 .about-open {
   width: 100%;
