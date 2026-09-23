@@ -33,10 +33,7 @@ export class SceneManager {
   }
 
   setBackground(color: number): void {
-    // The VTK layer owns the shared viewer background. Keep this canvas transparent
-    // so mesh and Three.js layers can be composed in the same scene.
-    void color;
-    this.scene.background = null;
+    this.scene.background = new THREE.Color(color);
   }
 
   /** Add labeled coordinate axes at the given origin, scaled to the grid. */
