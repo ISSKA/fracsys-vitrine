@@ -4,7 +4,6 @@ import {
   createScalarBar,
   DEFAULT_SCALAR_BAR_CONFIG,
   SECONDARY_SCALAR_BAR_CONFIG,
-  TERTIARY_SCALAR_BAR_CONFIG,
 } from "./scalar_bar.js";
 import { COLOR_MAPS, colorMapToCss, type ColorMap } from "./color_maps.js";
 import { LAYERS } from "../layers.config.js";
@@ -156,9 +155,7 @@ export class VtpLayerManager {
         ? "H"
         : layerId === "G_sat_flow"
           ? "Q"
-          : layerId === "isoline_segments"
-            ? "Z0"
-            : null;
+          : null;
     const scalarArray = scalarName
       ? (arrayValues(pointData, scalarName) ??
         arrayValues(cellData, scalarName))
@@ -168,7 +165,7 @@ export class VtpLayerManager {
       scalarArray && !arrayValues(pointData, scalarName ?? ""),
     );
     const colorMap =
-      layerId === "isoline_segments"
+      layerId === "isoline_segments" || layerId === "sat_glyphs" || layerId === "unsat_glyphs"
         ? COLOR_MAPS.roseWhite
         : COLOR_MAPS.rainbow;
     const logarithmic = layerId === "G_sat_flow";
@@ -178,15 +175,13 @@ export class VtpLayerManager {
       const names = {
         H: "Hydraulic head (m)",
         Q: "Discharge (m³/s)",
-        Z0: "Height (m)",
       };
       const configs = [
         DEFAULT_SCALAR_BAR_CONFIG,
         SECONDARY_SCALAR_BAR_CONFIG,
-        TERTIARY_SCALAR_BAR_CONFIG,
       ];
       const slot =
-        layerId === "G_sat_flow" ? 1 : layerId === "isoline_segments" ? 2 : 0;
+        layerId === "G_sat_flow" ? 1 : 0;
       this.scalarBars.get(slot)?.remove(null);
       this.scalarBars.set(
         slot,

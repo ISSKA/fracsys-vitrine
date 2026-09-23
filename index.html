@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FracSYS Vitrine</title>
-    <link rel="stylesheet" href="./src/mesh/styles.css">
-    <link rel="stylesheet" href="./src/flow/styles.css">
-    <link rel="stylesheet" href="./src/viewer-shell.css">
+    <link rel="stylesheet" href="./src/styles.css">
     <link rel="stylesheet" href="./src/background-toggle.css">
 </head>
 <body class="mesh-viewer unified-viewer" data-viewer-background="white">
@@ -27,11 +25,13 @@ Visualisation of the fractured aquifer surrounding the Cleuson-Dixence Gallery (
             </header>
             <div id="layerControls">
                 <h4 class="panel-heading">Layers</h4>
+
                 <div id="layerCheckboxes"></div>
-                    <div class="layer-actions">
-                        <button id="btn-select-all-layers" type="button">Select all</button>
-                        <button id="btn-deselect-all-layers" type="button">Deselect all</button>
-                    </div>
+
+                <div class="layer-actions">
+                    <button id="btn-select-all-layers" type="button">Select all</button>
+                    <button id="btn-deselect-all-layers" type="button">Deselect all</button>
+                </div>
             </div>
             <div id="ui" data-parameter-panel="dynamic-flow" hidden>
                 <h4 class="panel-heading">Parameters</h4>
@@ -69,7 +69,7 @@ Visualisation of the fractured aquifer surrounding the Cleuson-Dixence Gallery (
             <div class="sidebar-bottom">
                 <h4 class="panel-heading">FracSYS project 2024-2026</h4>
 
-                <button id="about-open" class="about-open" type="button">About</button>
+                <button id="about-open" class="about-open" type="button">ABOUT</button>
 
                 <footer class="sidebar-footer" aria-label="Project links">
                     <a href="https://www.crealp.ch/en/" aria-label="Center for research on the alpine environment"><img src="/img/crealp.png"/></a>
@@ -83,7 +83,7 @@ Visualisation of the fractured aquifer surrounding the Cleuson-Dixence Gallery (
         <p>FracSYS Prototype is the first demonstrator of FracSYS's functionalities. It applies these features to the case study of the Cleuson-Dixence gallery in Valais, Switzerland, modelling the faults that intersect the gallery and water inflow. More information on the methodology is available on the <a href="https://www.crealp.ch/fracsys-un-outil-pour-modeliser-les-aquiferes-fractures/" target="_blank">FracSYS homepage</a>. The conceptual geological model of Cleuson-Dixence is available on <a href="https://www.visualkarsys.com/vk/project/2453" target="_blank">Visual KarSYS</a>. The FracSYS prototype was developed in collaboration with SISKA, CREALP and i4DS.</p>
     </dialog>
     <div id="info">
-        Controls: Rotate (left mouse button), Pan (right mouse button), Roll (Shift + left mouse button), Zoom (mouse wheel)
+        Controls: Rotate (left mouse button), Pan (right mouse button), Zoom (mouse wheel)
     </div>
     <div id="metadata"></div>
     <div id="download-progress" style="display: none;">
@@ -112,7 +112,6 @@ Visualisation of the fractured aquifer surrounding the Cleuson-Dixence Gallery (
                         <div class="velocity-legend-gradient"></div>
                         <div class="velocity-legend-labels">
                             <span>High</span>
-                            <span>Ball speed &prop; velocity (linear)</span>
                             <span>Low</span>
                         </div>
                     </div>

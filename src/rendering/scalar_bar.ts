@@ -153,19 +153,3 @@ export const SECONDARY_SCALAR_BAR_CONFIG: Omit<ScalarBarConfig, 'name'> = {
     fontFamily: 'Arial'
   }
 };
-
-/**
- * Configuration for a tertiary scalar bar (slot 2).
- * Offset = secondary leftPx (95) + panel width (80) + gap (5) = 180px.
- */
-export const TERTIARY_SCALAR_BAR_CONFIG: Omit<ScalarBarConfig, 'name'> = {
-  leftPx: 180,
-  position: { x: 0.66, y: 0.15 },
-  size: { width: 0.08, height: 0.7 },
-  textStyle: {
-    axisLabelFontSize: 7,
-    tickLabelFontSize: 6,
-    fontColor: 'black',
-    fontFamily: 'Arial'
-  }
-};
