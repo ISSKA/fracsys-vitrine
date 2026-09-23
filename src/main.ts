@@ -3,11 +3,11 @@ import { appConfig } from './config';
 import { setupBackgroundToggle } from './background-toggle';
 import { setupViewerTabs, type ViewerTabDefinition } from './viewer-tabs';
 import { TAB_LAYER_DEFAULTS, VIEWER_LAYERS } from './layers.config';
-import { SceneManager } from './flow/rendering/SceneManager';
-import { VoxelGrid } from './flow/grid/VoxelGrid';
-import { generateSampleGrid, parseGridCSV } from './flow/grid/gridLoader';
-import { VoxelRenderer } from './flow/rendering/VoxelRenderer';
-import { InletFlowRenderer } from './flow/rendering/InletFlowRenderer';
+import { SceneManager } from './rendering/SceneManager';
+import { VoxelGrid } from './grid/VoxelGrid';
+import { generateSampleGrid, parseGridCSV } from './grid/gridLoader';
+import { VoxelRenderer } from './rendering/VoxelRenderer';
+import { InletFlowRenderer } from './rendering/InletFlowRenderer';
 import { VtpLayerManager } from './rendering/VtpLayerManager';
 import { loadTopographyIntoScene, setTopographyVisible } from './rendering/TopographyLayer';
 
