@@ -7,7 +7,7 @@ export interface LayerConfig {
   defaultVisible: boolean;
 }
 
-export type ViewerLayerKind = 'mesh' | 'voxels' | 'damage-zone' | 'particles' | 'particle-counter';
+export type ViewerLayerKind = 'mesh' | 'voxels' | 'damage-zone' | 'particles' | 'particle-counter' | 'topography';
 
 export interface ViewerLayerConfig {
   id: string;
@@ -26,6 +26,7 @@ export const LAYERS: readonly LayerConfig[] = [
 ] as const;
 
 export const VIEWER_LAYERS: readonly ViewerLayerConfig[] = [
+  { id: 'topography', label: 'Topography', kind: 'topography' },
   { id: 'sat_glyphs', label: 'Saturated part', kind: 'mesh' },
   { id: 'unsat_glyphs', label: 'Unsaturated part', kind: 'mesh' },
   { id: 'G_sat_flow', label: 'Flow network', kind: 'mesh' },
@@ -40,9 +41,9 @@ export const VIEWER_LAYERS: readonly ViewerLayerConfig[] = [
 
 
 export const TAB_LAYER_DEFAULTS: Record<ViewerTabId, readonly string[]> = {
-  'fracture-network': ['source_glyph'],
-  'damage-zone': ['source_glyph', 'damage-zone'],
-  'flow-network': ['sat_glyphs', 'unsat_glyphs', 'G_sat_flow', 'isoline_segments', 'source_glyph', 'recharge_nodes'],
-  'productive-zone': ['source_glyph', 'voxels'],
-  'dynamic-flow': ['voxels', 'isoline_segments', 'all_paths', 'source_glyph', 'particles'],
+  'fracture-network': ['topography', 'source_glyph'],
+  'damage-zone': ['topography', 'source_glyph', 'damage-zone'],
+  'flow-network': ['topography', 'sat_glyphs', 'unsat_glyphs', 'G_sat_flow', 'isoline_segments', 'source_glyph', 'recharge_nodes'],
+  'productive-zone': ['topography', 'source_glyph', 'voxels'],
+  'dynamic-flow': ['topography', 'voxels', 'isoline_segments', 'all_paths', 'source_glyph', 'particles'],
 };

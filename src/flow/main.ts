@@ -9,6 +9,7 @@ import { appConfig } from '../config';
 import { setupBackgroundToggle } from '../background-toggle';
 import type { ViewerTabDefinition } from '../viewer-tabs';
 import { TAB_LAYER_DEFAULTS } from '../layers.config';
+import { loadTopographyIntoScene, setTopographyVisible } from '../mesh/topography';
 
 // --- Mobile warning ---
 // Touch-primary input on a small screen → likely a phone, unsuited for the
@@ -142,6 +143,7 @@ document.addEventListener('viewer-layer-change', (event) => {
   if (id === 'voxels') voxelRenderer?.setVisible(visible);
   if (id === 'damage-zone') voxelRenderer?.setDamageZoneVisible(visible);
   if (id === 'flow') inletFlow?.setParticlesVisible(visible);
+  if (id === 'topography') setTopographyVisible(visible);
 });
 
 function loadGrid(data: GridData): void {
@@ -175,6 +177,15 @@ function loadGrid(data: GridData): void {
   const axisLength = radius * 0.4;
   scene.addAxes(new THREE.Vector3(0, 0, 0), axisLength);
   publishCameraState();
+
+
+  loadTopographyIntoScene(
+    scene.scene,
+    'data/topography.vtp',
+    'data/topography.pgw',
+    'data/topography.png',
+    grid ? grid.origin : { x: 0, y: 0, z: 0 },
+  ).catch(err => console.error('Failed to load topography:', err));
 }
 
 fetch(defaultGridUrl)
