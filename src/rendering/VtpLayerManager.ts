@@ -108,9 +108,9 @@ export class VtpLayerManager {
   ): [number, number, number] {
     if (!this.origin) return [x, y, z];
     return [
-      y - this.origin.y, // Three.js X = LV95 Northing - originY
-      z - this.origin.z, // Three.js Y = LV95 Elevation - originZ
-      x - this.origin.x, // Three.js Z = LV95 Easting - originX
+      y - this.origin.y,
+      z - this.origin.z,
+      x - this.origin.x,
     ];
   }
 
@@ -178,7 +178,7 @@ export class VtpLayerManager {
       const names = {
         H: "Hydraulic head (m)",
         Q: "Discharge (m³/s)",
-        Z0: "Hydraulic head (m)",
+        Z0: "Height (m)",
       };
       const configs = [
         DEFAULT_SCALAR_BAR_CONFIG,

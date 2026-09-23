@@ -19,6 +19,8 @@ let voxels: VoxelRenderer | undefined;
 let particles: InletFlowRenderer | undefined;
 let activeTab: ViewerTabDefinition['id'] = 'fracture-network';
 let pointerDown: { x: number; y: number } | null = null;
+let lastTime = performance.now();
+let isPaused = false;
 
 setupBackgroundToggle((background) => {
   scene.setBackground(background === 'black' ? 0x000000 : 0xffffff);
@@ -114,6 +116,54 @@ function pickMetadata(clientX: number, clientY: number): void {
   metadata.style.display = 'block';
 }
 
+const btnPlayPause = document.getElementById('btn-play-pause') as HTMLButtonElement;
+const btnResetSim = document.getElementById('btn-reset-sim') as HTMLButtonElement;
+const speedSlider = document.getElementById('speed-slider') as HTMLInputElement;
+const speedValue = document.getElementById('speed-value') as HTMLSpanElement;
+const inletEmissionSlider = document.getElementById('inlet-emission-slider') as HTMLInputElement;
+const emissionRates = [0, 1, 2, 4] as const;
+const emissionRateLabels = ['Off', 'Low', 'Medium', 'High'] as const;
+
+function selectedEmissionRate(): number {
+  return emissionRates[Number(inletEmissionSlider.value)] ?? emissionRates[3];
+}
+
+function updateEmissionRate(): void {
+  const setting = Number(inletEmissionSlider.value);
+  inletEmissionSlider.setAttribute(
+    'aria-valuetext',
+    emissionRateLabels[setting] ?? emissionRateLabels[3],
+  );
+  particles?.setEmissionRate(selectedEmissionRate());
+}
+
+inletEmissionSlider.addEventListener('input', updateEmissionRate);
+let speedMultiplier = parseFloat(speedSlider.value) || 1;
+
+function updateSpeedLabel(): void {
+  speedValue.textContent = `${speedMultiplier.toFixed(2)}×`;
+}
+updateSpeedLabel();
+
+// `input`, not `change`: `change` only fires on release, which feels broken.
+speedSlider.addEventListener('input', () => {
+  speedMultiplier = parseFloat(speedSlider.value) || 1;
+  updateSpeedLabel();
+});
+
+function updatePlayPauseButton(): void {
+  btnPlayPause.textContent = isPaused ? 'Resume' : 'Pause';
+}
+
+btnPlayPause.addEventListener('click', () => {
+  isPaused = !isPaused;
+  updatePlayPauseButton();
+});
+
+btnResetSim.addEventListener('click', () => {
+  particles?.reset();
+});
+
 canvas.addEventListener('pointerdown', (event) => { pointerDown = { x: event.clientX, y: event.clientY }; });
 canvas.addEventListener('pointerup', (event) => {
   if (!pointerDown) return;
@@ -190,6 +240,10 @@ void start();
 
 function animate(): void {
   requestAnimationFrame(animate);
+  const now = performance.now();
+  const dt = Math.min(0.1, (now - lastTime) / 1000);
+  lastTime = now;
+  if (particles && !isPaused) particles.update(dt * speedMultiplier, dt);
   scene.render();
 }
 animate();

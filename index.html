@@ -33,9 +33,6 @@ Visualisation of the fractured aquifer surrounding the Cleuson-Dixence Gallery (
                         <button id="btn-deselect-all-layers" type="button">Deselect all</button>
                     </div>
             </div>
-            <div id="controls" data-engine-panel="mesh">
-
-            </div>
             <div id="ui" data-parameter-panel="dynamic-flow" hidden>
                 <h4 class="panel-heading">Parameters</h4>
                 <div id="simulation-controls" role="group" aria-label="Simulation controls">
@@ -48,6 +45,24 @@ Visualisation of the fractured aquifer surrounding the Cleuson-Dixence Gallery (
                 <div class="slider-control">
                     <label for="speed-slider"><span>Flow speed</span><span id="speed-value">1.00&times;</span></label>
                     <input id="speed-slider" type="range" min="0.25" max="4" step="0.25" value="1" />
+                </div>
+                <div class="slider-control">
+                    <label for="inlet-emission-slider">Inlet emission rate</label>
+                    <input
+                    id="inlet-emission-slider"
+                    type="range"
+                    min="0"
+                    max="3"
+                    step="1"
+                    value="3"
+                    aria-valuetext="High"
+                    />
+                    <div class="slider-labels" aria-hidden="true">
+                    <span>Off</span>
+                    <span>Low</span>
+                    <span>Medium</span>
+                    <span>High</span>
+                    </div>
                 </div>
                 <label class="display-toggle"><input id="layer-particle-counter" type="checkbox" checked /> Particle counter</label>
             </div>

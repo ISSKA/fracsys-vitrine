@@ -33,14 +33,7 @@ function parsePgw(text: string): WorldFile {
   return { pixelWidth: lines[0], pixelHeight: lines[3], originX: lines[4], originY: lines[5] };
 }
 
-/**
- * Minimal reader for your specific VTP format:
- * - Float64 points, UInt32 polys (triangles)
- * - zlib compressed, LittleEndian
- * - Uses fflate for decompression (already likely in your bundle via VTK.js)
- */
 async function readVtp(buffer: ArrayBuffer): Promise<THREE.BufferGeometry> {
-  // Re-use VTK.js's own reader which you already have, then extract the arrays
   const { default: vtkXMLPolyDataReader } = await import('@kitware/vtk.js/IO/XML/XMLPolyDataReader');
   
   const reader = vtkXMLPolyDataReader.newInstance();
@@ -88,8 +81,8 @@ function computeUVs(geometry: THREE.BufferGeometry, wf: WorldFile, imgWidth: num
   const n = positions.length / 3;
   const uvs = new Float32Array(n * 2);
   for (let i = 0; i < n; i++) {
-    const lv95X = positions[i * 3];     // Easting
-    const lv95Y = positions[i * 3 + 1]; // Northing
+    const lv95X = positions[i * 3];
+    const lv95Y = positions[i * 3 + 1];
     uvs[i * 2]     = (lv95X - wf.originX) / (imgWidth  * wf.pixelWidth);
     uvs[i * 2 + 1] = (lv95Y - wf.originY) / (imgHeight * wf.pixelHeight);
   }
@@ -123,7 +116,6 @@ export async function loadTopographyIntoScene(
   
   geometry.computeVertexNormals();
 
-  // Keep ImageData alive
   const canvas = document.createElement('canvas');
   canvas.width = img.naturalWidth;
   canvas.height = img.naturalHeight;
@@ -137,6 +129,7 @@ export async function loadTopographyIntoScene(
     img.naturalHeight,
     THREE.RGBAFormat,
   );
+  // Keep ImageData alive
   texture.needsUpdate = true;
 
   const material = new THREE.MeshStandardMaterial({
