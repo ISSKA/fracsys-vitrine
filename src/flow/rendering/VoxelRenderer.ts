@@ -23,42 +23,18 @@ function velocityColor(t: number): THREE.Color {
 export class VoxelRenderer {
   private group: THREE.Group;
   private wireframeGroup: THREE.Group;
-  private solidMesh: THREE.InstancedMesh;
+  private damageZoneWireframeGroup: THREE.Group;
   private exitMaterial?: LineMaterial;
   private onResize?: () => void;
 
   constructor(grid: VoxelGrid) {
     this.group = new THREE.Group();
     this.wireframeGroup = new THREE.Group();
+    this.damageZoneWireframeGroup = new THREE.Group();
 
-    let solidVoxelCount = 0;
-    for (let z = 0; z < grid.nz; z++) {
-      for (let y = 0; y < grid.ny; y++) {
-        for (let x = 0; x < grid.nx; x++) {
-          if (grid.exists(x, y, z)) solidVoxelCount++;
-        }
-      }
-    }
-    this.solidMesh = new THREE.InstancedMesh(
-      new THREE.BoxGeometry(grid.voxelSize, grid.voxelSize, grid.voxelSize),
-      new THREE.MeshBasicMaterial({ color: 0x9a9a9a, transparent: true, opacity: 0.1, depthWrite: false }),
-      solidVoxelCount,
-    );
-    const solidMatrix = new THREE.Matrix4();
-    let solidIndex = 0;
-    for (let z = 0; z < grid.nz; z++) {
-      for (let y = 0; y < grid.ny; y++) {
-        for (let x = 0; x < grid.nx; x++) {
-          if (!grid.exists(x, y, z)) continue;
-          solidMatrix.makeTranslation(...grid.toWorldPosition(x, y, z).toArray());
-          this.solidMesh.setMatrixAt(solidIndex++, solidMatrix);
-        }
-      }
-    }
-    this.solidMesh.instanceMatrix.needsUpdate = true;
-    this.solidMesh.visible = false;
-    this.group.add(this.solidMesh);
+    this.group.add(this.damageZoneWireframeGroup);
     this.group.add(this.wireframeGroup);
+    
 
     const size = grid.voxelSize;
     const boxGeo = new THREE.BoxGeometry(size, size, size);
@@ -69,6 +45,67 @@ export class VoxelRenderer {
     const floatsPerVoxel = basePositions.length;
     boxGeo.dispose();
     edgesGeo.dispose();
+
+    // -------------------------------------------------------------------------
+    // Gray damage-zone wireframe.
+    // One merged LineSegments containing the edges of every existing voxel.
+    // -------------------------------------------------------------------------
+    let damageVoxelCount = 0;
+
+    for (let z = 0; z < grid.nz; z++) {
+      for (let y = 0; y < grid.ny; y++) {
+        for (let x = 0; x < grid.nx; x++) {
+          if (grid.exists(x, y, z)) {
+            damageVoxelCount++;
+          }
+        }
+      }
+    }
+
+    const damagePositions = new Float32Array(
+      damageVoxelCount * floatsPerVoxel
+    );
+
+    let damageCursor = 0;
+
+    for (let z = 0; z < grid.nz; z++) {
+      for (let y = 0; y < grid.ny; y++) {
+        for (let x = 0; x < grid.nx; x++) {
+          if (!grid.exists(x, y, z)) continue;
+
+          const pos = grid.toWorldPosition(x, y, z);
+
+          for (let v = 0; v < vertsPerVoxel; v++) {
+            const b = v * 3;
+
+            damagePositions[damageCursor++] = basePositions[b] + pos.x;
+            damagePositions[damageCursor++] = basePositions[b + 1] + pos.y;
+            damagePositions[damageCursor++] = basePositions[b + 2] + pos.z;
+          }
+        }
+      }
+    }
+
+    if (damageVoxelCount > 0) {
+      const damageGeo = new THREE.BufferGeometry();
+      damageGeo.setAttribute(
+        'position',
+        new THREE.BufferAttribute(damagePositions, 3)
+      );
+
+      const damageMat = new THREE.LineBasicMaterial({
+        color: 0x9a9a9a,
+        transparent: true,
+        opacity: 0.4,
+      });
+
+      this.damageZoneWireframeGroup.add(
+        new THREE.LineSegments(damageGeo, damageMat)
+      );
+    }
+
+    this.damageZoneWireframeGroup.visible = false;
+
 
     // Outflow nodes are drawn separately as a bold red fat line (below), so pull
     // them out of the merged tiers. Inlet still takes precedence over exit.
@@ -203,7 +240,7 @@ export class VoxelRenderer {
 
   /** Show or hide the gray damage-zone layer. */
   setDamageZoneVisible(visible: boolean): void {
-    this.solidMesh.visible = visible;
+    this.damageZoneWireframeGroup.visible = visible;
   }
 
   removeFromScene(scene: THREE.Scene): void {
@@ -218,10 +255,7 @@ export class VoxelRenderer {
       this.onResize = undefined;
     }
     this.group.traverse(obj => {
-      if (obj === this.solidMesh) {
-        this.solidMesh.geometry.dispose();
-        (this.solidMesh.material as THREE.Material).dispose();
-      } else if (obj instanceof THREE.LineSegments || obj instanceof LineSegments2) {
+      if (obj instanceof THREE.LineSegments || obj instanceof LineSegments2) {
         obj.geometry.dispose();
         (obj.material as THREE.Material).dispose();
       }
