@@ -16,6 +16,7 @@ export interface ViewerLayerConfig {
 }
 
 export const LAYERS: readonly LayerConfig[] = [
+  { id: 'pv_mesh', filename: 'pv_mesh_*.vtp', label: 'Fracture', defaultVisible: true },
   { id: 'sat_glyphs', filename: 'sat_glyphs.vtp', label: 'Nodes in saturated zone', defaultVisible: true },
   { id: 'unsat_glyphs', filename: 'unsat_glyphs.vtp', label: 'Nodes in unsaturated zone', defaultVisible: true },
   { id: 'G_sat_flow', filename: 'G_sat_flow.vtp', label: 'Groundwater flow', defaultVisible: true },
@@ -27,6 +28,7 @@ export const LAYERS: readonly LayerConfig[] = [
 
 export const VIEWER_LAYERS: readonly ViewerLayerConfig[] = [
   { id: 'topography', label: 'Topography', kind: 'topography' },
+  { id: 'pv_mesh', label: 'Fracture', kind: 'mesh' },
   { id: 'sat_glyphs', label: 'Saturated part', kind: 'mesh' },
   { id: 'unsat_glyphs', label: 'Unsaturated part', kind: 'mesh' },
   { id: 'G_sat_flow', label: 'Flow network', kind: 'mesh' },

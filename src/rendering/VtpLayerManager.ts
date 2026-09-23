@@ -106,11 +106,7 @@ export class VtpLayerManager {
     z: number,
   ): [number, number, number] {
     if (!this.origin) return [x, y, z];
-    return [
-      y - this.origin.y,
-      z - this.origin.z,
-      x - this.origin.x,
-    ];
+    return [y - this.origin.y, z - this.origin.z, x - this.origin.x];
   }
 
   constructor(scene: THREE.Scene) {
@@ -120,14 +116,35 @@ export class VtpLayerManager {
   async loadAll(): Promise<void> {
     await Promise.all(
       LAYERS.map(async (layer) => {
-        const response = await fetch(
-          `${import.meta.env.BASE_URL}data/${layer.filename}`,
-        );
-        if (!response.ok)
-          throw new Error(
-            `Failed to load ${layer.filename}: ${response.statusText}`,
+        if (layer.filename.includes("*")) {
+          const filePattern = layer.filename.replace("*", "\\d+");
+          const regex = new RegExp(`^${filePattern}$`);
+          
+          const response = await fetch(`${import.meta.env.BASE_URL}data/index.json`);
+          if (!response.ok) throw new Error(`Failed to load file list: ${response.statusText}`);
+          const fileList = (await response.json()) as string[];
+          const matchingFiles = fileList.filter((filename) => regex.test(filename));
+          
+          const arrayBuffers = await Promise.all(
+            matchingFiles.map((filename) =>
+              fetch(`${import.meta.env.BASE_URL}data/${filename}`).then((res) => {
+                if (!res.ok) throw new Error(`Failed to load ${filename}: ${res.statusText}`);
+                return res.arrayBuffer();
+              })
+            )
           );
-        await this.loadLayer(layer.id, await response.arrayBuffer());
+          
+          await this.loadMultiLayer(layer.id, arrayBuffers);
+        } else {
+          const response = await fetch(
+            `${import.meta.env.BASE_URL}data/${layer.filename}`,
+          );
+          if (!response.ok)
+            throw new Error(
+              `Failed to load ${layer.filename}: ${response.statusText}`,
+            );
+          await this.loadLayer(layer.id, await response.arrayBuffer());
+        }
       }),
     );
     this.initialized = true;
@@ -140,6 +157,22 @@ export class VtpLayerManager {
     const group = this.convertPolyData(layerId, source);
     this.scene.add(group);
     this.layers.set(layerId, { group, source, visible: true });
+  }
+
+  private async loadMultiLayer(
+    layerId: string,
+    buffers: ArrayBuffer[],
+  ): Promise<void> {
+    const group = new THREE.Group();
+    for (const buffer of buffers) {
+      const reader = vtkXMLPolyDataReader.newInstance();
+      reader.parseAsArrayBuffer(buffer);
+      const source = reader.getOutputData(0);
+      const subGroup = this.convertPolyData(layerId, source);
+      group.add(subGroup);
+    }
+    this.scene.add(group);
+    this.layers.set(layerId, { group, source: null, visible: true });
   }
 
   private convertPolyData(layerId: string, source: any): THREE.Group {
@@ -165,7 +198,9 @@ export class VtpLayerManager {
       scalarArray && !arrayValues(pointData, scalarName ?? ""),
     );
     const colorMap =
-      layerId === "isoline_segments" || layerId === "sat_glyphs" || layerId === "unsat_glyphs"
+      layerId === "isoline_segments" ||
+      layerId === "sat_glyphs" ||
+      layerId === "unsat_glyphs"
         ? COLOR_MAPS.roseWhite
         : COLOR_MAPS.rainbow;
     const logarithmic = layerId === "G_sat_flow";
@@ -176,12 +211,8 @@ export class VtpLayerManager {
         H: "Hydraulic head (m)",
         Q: "Discharge (m³/s)",
       };
-      const configs = [
-        DEFAULT_SCALAR_BAR_CONFIG,
-        SECONDARY_SCALAR_BAR_CONFIG,
-      ];
-      const slot =
-        layerId === "G_sat_flow" ? 1 : 0;
+      const configs = [DEFAULT_SCALAR_BAR_CONFIG, SECONDARY_SCALAR_BAR_CONFIG];
+      const slot = layerId === "G_sat_flow" ? 1 : 0;
       this.scalarBars.get(slot)?.remove(null);
       this.scalarBars.set(
         slot,

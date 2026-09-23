@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "dev:mesh": "vite --open /",
-    "dev:flow": "vite --open /flow/",
+    "dev": "npm run generate:data-index && vite",
+    "generate:data-index": "node scripts/generate-data-index.mjs",
+    "prebuild": "npm run generate:data-index",
     "build": "npm run type-check && vite build",
     "build:preview": "npm run type-check && vite build --base=/preview/",
     "preview": "vite preview",
