@@ -17,6 +17,7 @@ export interface ViewerLayerConfig {
 
 export const LAYERS: readonly LayerConfig[] = [
   { id: 'pv_mesh', filename: 'pv_mesh_*.vtp', label: 'Fracture', defaultVisible: true },
+  { id: 'Gallery', filename: 'Gallery.vtp', label: 'Gallery', defaultVisible: true },
   { id: 'sat_glyphs', filename: 'sat_glyphs.vtp', label: 'Nodes in saturated zone', defaultVisible: true },
   { id: 'unsat_glyphs', filename: 'unsat_glyphs.vtp', label: 'Nodes in unsaturated zone', defaultVisible: true },
   { id: 'G_sat_flow', filename: 'G_sat_flow.vtp', label: 'Groundwater flow', defaultVisible: true },
@@ -27,7 +28,8 @@ export const LAYERS: readonly LayerConfig[] = [
 ] as const;
 
 export const VIEWER_LAYERS: readonly ViewerLayerConfig[] = [
-  { id: 'topography', label: 'Topography', kind: 'topography' },
+  { id: 'topography', label: 'Topography map', kind: 'topography' },
+  { id: 'Gallery', label: 'Gallery', kind: 'mesh' },
   { id: 'pv_mesh', label: 'Fracture', kind: 'mesh' },
   { id: 'sat_glyphs', label: 'Saturated part', kind: 'mesh' },
   { id: 'unsat_glyphs', label: 'Unsaturated part', kind: 'mesh' },
@@ -43,9 +45,9 @@ export const VIEWER_LAYERS: readonly ViewerLayerConfig[] = [
 
 
 export const TAB_LAYER_DEFAULTS: Record<ViewerTabId, readonly string[]> = {
-  'fracture-network': ['topography', 'source_glyph'],
-  'damage-zone': ['topography', 'source_glyph', 'damage-zone'],
-  'flow-network': ['topography', 'sat_glyphs', 'unsat_glyphs', 'G_sat_flow', 'isoline_segments', 'source_glyph', 'recharge_nodes'],
-  'productive-zone': ['topography', 'source_glyph', 'voxels'],
-  'dynamic-flow': ['topography', 'voxels', 'isoline_segments', 'all_paths', 'source_glyph', 'particles'],
+  'fracture-network': ['topography', 'Gallery', 'pv_mesh', 'source_glyph'],
+  'damage-zone': ['topography', 'Gallery', 'source_glyph', 'damage-zone'],
+  'flow-network': ['topography', 'Gallery', 'sat_glyphs', 'unsat_glyphs', 'G_sat_flow', 'isoline_segments', 'source_glyph', 'recharge_nodes'],
+  'productive-zone': ['topography', 'Gallery', 'source_glyph', 'voxels'],
+  'dynamic-flow': ['topography', 'Gallery', 'voxels', 'isoline_segments', 'all_paths', 'source_glyph', 'particles'],
 };

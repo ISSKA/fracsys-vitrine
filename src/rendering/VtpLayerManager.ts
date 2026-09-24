@@ -154,6 +154,8 @@ export class VtpLayerManager {
     const reader = vtkXMLPolyDataReader.newInstance();
     reader.parseAsArrayBuffer(buffer);
     const source = reader.getOutputData(0);
+    console.log(`[VTP] ${layerId} bounds:`, source.getBounds());
+
     const group = this.convertPolyData(layerId, source);
     this.scene.add(group);
     this.layers.set(layerId, { group, source, visible: true });
@@ -246,9 +248,11 @@ export class VtpLayerManager {
       if (layerId === "source_glyph") {
         return new THREE.Color(0.9, 0.0, 0.0);
       }
+      else if (layerId === "Gallery") {
+        return new THREE.Color(0.1, 0.1, 0.1);
+      }
       return field ?? new THREE.Color(0.8, 0.8, 0.8);
     };
-
     const addGeometry = (
       cells: CellRecord[],
       mode: "mesh" | "lines" | "points",
@@ -280,11 +284,16 @@ export class VtpLayerManager {
 
         for (const segment of segments) {
           for (const index of segment) {
-            const [rx, ry, rz] = this.remapPoint(
+            const [rx, ry, rz] = layerId === 'Gallery' ? this.remapPoint(
+              points[index * 3] / 10,
+              points[index * 3 + 1] / 10,
+              points[index * 3 + 2] / 10,
+            ) : this.remapPoint(
               points[index * 3],
               points[index * 3 + 1],
               points[index * 3 + 2],
             );
+
             positions.push(rx, ry, rz);
             const color = colorFor(index, cell.cellId);
             colors.push(color.r, color.g, color.b);
