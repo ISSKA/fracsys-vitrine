@@ -11,6 +11,8 @@ import { InletFlowRenderer } from './rendering/InletFlowRenderer';
 import { VtpLayerManager } from './rendering/VtpLayerManager';
 import { loadTopographyIntoScene, setTopographyVisible } from './rendering/TopographyLayer';
 
+const FLOW_SPEED_FACTOR = 16;
+
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const scene = new SceneManager(canvas);
 const vtpLayers = new VtpLayerManager(scene.scene);
@@ -243,7 +245,7 @@ function animate(): void {
   const now = performance.now();
   const dt = Math.min(0.1, (now - lastTime) / 1000);
   lastTime = now;
-  if (particles && !isPaused) particles.update(dt * speedMultiplier, dt);
+  if (particles && !isPaused) particles.update(dt * speedMultiplier / FLOW_SPEED_FACTOR, dt)
   scene.render();
 }
 animate();
