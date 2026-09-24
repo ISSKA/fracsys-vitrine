@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 
 let _mesh: THREE.Mesh | null = null;
-let _topoImageData: ImageData | null = null;
 let _visible = true;
 
 interface WorldFile {
@@ -101,7 +100,6 @@ export async function loadTopographyIntoScene(
     fetch(pgwUrl).then(r => { if (!r.ok) throw new Error(r.statusText); return r.text(); }),
     new Promise<HTMLImageElement>((resolve, reject) => {
       const el = new Image();
-      el.crossOrigin = 'anonymous';
       el.onload = () => resolve(el);
       el.onerror = () => reject(new Error('Failed to load topography PNG'));
       el.src = pngUrl;
@@ -116,21 +114,9 @@ export async function loadTopographyIntoScene(
   
   geometry.computeVertexNormals();
 
-  const canvas = document.createElement('canvas');
-  canvas.width = img.naturalWidth;
-  canvas.height = img.naturalHeight;
-  const ctx = canvas.getContext('2d')!;
-  ctx.drawImage(img, 0, 0);
-  _topoImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-  const texture = new THREE.DataTexture(
-    _topoImageData.data,
-    img.naturalWidth,
-    img.naturalHeight,
-    THREE.RGBAFormat,
-  );
-  // Keep ImageData alive
+  const texture = new THREE.Texture(img);
   texture.needsUpdate = true;
+  texture.flipY = false;
 
   const material = new THREE.MeshStandardMaterial({
     map: texture,
