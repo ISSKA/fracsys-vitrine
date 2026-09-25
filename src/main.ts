@@ -245,7 +245,7 @@ function animate(): void {
   const now = performance.now();
   const dt = Math.min(0.1, (now - lastTime) / 1000);
   lastTime = now;
-  if (particles && !isPaused) particles.update(dt * speedMultiplier / FLOW_SPEED_FACTOR, dt)
+  if (particles && !isPaused) particles.update(dt * speedMultiplier / FLOW_SPEED_FACTOR, dt / 2)
   scene.render();
 }
 animate();
