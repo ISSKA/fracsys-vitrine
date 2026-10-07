@@ -11,7 +11,7 @@ import { InletFlowRenderer } from './rendering/InletFlowRenderer';
 import { VtpLayerManager } from './rendering/VtpLayerManager';
 import { loadTopographyIntoScene, setTopographyVisible } from './rendering/TopographyLayer';
 
-const FLOW_SPEED_FACTOR = 16;
+const FLOW_SPEED_FACTOR = 4;
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const scene = new SceneManager(canvas);
@@ -215,7 +215,13 @@ async function loadGrid(data: ReturnType<typeof parseGridCSV>): Promise<void> {
   const center = grid.getCenter();
   const radius = grid.getRadius();
   scene.setInitialView(center, new THREE.Vector3(center.x + radius * 1.5, center.y + radius * 1.2, center.z + radius * 1.5));
-  scene.addAxes(new THREE.Vector3(0, 0, 0), radius * 0.4);
+  scene.addBackgroundGrid(
+    grid.nx,
+    grid.ny,
+    grid.nz,
+    grid.voxelSize,
+  );
+
   applyPreset(activeTab);
 
   loadTopographyIntoScene(scene.scene, `${import.meta.env.BASE_URL}data/topography.vtp`, `${import.meta.env.BASE_URL}data/topography.pgw`, `${import.meta.env.BASE_URL}data/topography.png`, grid.origin)

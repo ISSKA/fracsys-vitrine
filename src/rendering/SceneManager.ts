@@ -1,12 +1,14 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+const BACKGROUND_GRID_SPACING = 1000;
+
 export class SceneManager {
+
   readonly scene: THREE.Scene;
   readonly camera: THREE.PerspectiveCamera;
   readonly renderer: THREE.WebGLRenderer;
   readonly controls: OrbitControls;
-  private axesGroup?: THREE.Group;
 
   constructor(canvas: HTMLCanvasElement) {
     this.scene = new THREE.Scene();
@@ -36,66 +38,77 @@ export class SceneManager {
     this.scene.background = new THREE.Color(color);
   }
 
-  /** Add labeled coordinate axes at the given origin, scaled to the grid. */
-  addAxes(origin: THREE.Vector3, length: number): void {
-    if (this.axesGroup) {
-      this.scene.remove(this.axesGroup);
-      this.disposeGroup(this.axesGroup);
-    }
+  addBackgroundGrid(
+    nx: number,
+    ny: number,
+    nz: number,
+    voxelSize: number,
+  ): void {
+    const spacing = BACKGROUND_GRID_SPACING;
 
-    // Axis lines: red=X, green=Z(gravity), blue=Y
-    const axes = new THREE.Group();
+    const widthX = (ny - 1) * voxelSize;
+    const widthZ = (nx - 1) * voxelSize;
+    const heightY = (nz - 1) * voxelSize;
 
-    const makeArrow = (dir: THREE.Vector3, color: number, label: string) => {
-      const arrow = new THREE.ArrowHelper(dir, origin, length, color, length * 0.08, length * 0.04);
-      axes.add(arrow);
+    const x0 = -spacing;
+    const x1 = Math.ceil(widthX / spacing) * spacing + spacing;
 
-      const spriteScale = length * 0.15;
-      const sprite = this.makeTextSprite(label, color);
-      sprite.position.copy(origin).addScaledVector(dir, length * 1.12);
-      sprite.scale.set(spriteScale, spriteScale, 1);
-      axes.add(sprite);
+    const z0 = -spacing;
+    const z1 = Math.ceil(widthZ / spacing) * spacing + spacing;
+
+    const y0 = -spacing;
+    const y1 = Math.ceil(heightY / spacing) * spacing + spacing;
+
+    const material = new THREE.LineBasicMaterial({
+      color: 0xBBBBBB,
+    });
+
+    const makeGrid = (vertices: number[]): THREE.LineSegments => {
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute(
+        'position',
+        new THREE.Float32BufferAttribute(vertices, 3),
+      );
+      return new THREE.LineSegments(geometry, material);
     };
 
-    makeArrow(new THREE.Vector3(1, 0, 0), 0xff4444, 'Y');  // grid Y → Three.js X
-    makeArrow(new THREE.Vector3(0, 1, 0), 0x44ff44, 'Z');  // grid Z → Three.js Y
-    makeArrow(new THREE.Vector3(0, 0, 1), 0x4488ff, 'X');  // grid X → Three.js Z
+    const xz: number[] = [];
 
-    this.scene.add(axes);
-    this.axesGroup = axes;
+    for (let x = x0; x <= x1; x += spacing) {
+      xz.push(x, y0, z0, x, y0, z1);
+    }
+
+    for (let z = z0; z <= z1; z += spacing) {
+      xz.push(x0, y0, z, x1, y0, z);
+    }
+
+    const xy: number[] = [];
+
+    for (let x = x0; x <= x1; x += spacing) {
+      xy.push(x, y0, z0, x, y1, z0);
+    }
+
+    for (let y = y0; y <= y1; y += spacing) {
+      xy.push(x0, y, z0, x1, y, z0);
+    }
+
+    const yz: number[] = [];
+
+    for (let z = z0; z <= z1; z += spacing) {
+      yz.push(x0, y0, z, x0, y1, z);
+    }
+
+    for (let y = y0; y <= y1; y += spacing) {
+      yz.push(x0, y, z0, x0, y, z1);
+    }
+
+    this.scene.add(
+      makeGrid(xz),
+      makeGrid(xy),
+      makeGrid(yz),
+    );
   }
 
-  private disposeGroup(group: THREE.Group): void {
-    group.traverse(obj => {
-      if (obj instanceof THREE.Sprite) {
-        const mat = obj.material as THREE.SpriteMaterial;
-        mat.map?.dispose();
-        mat.dispose();
-      } else if (obj instanceof THREE.ArrowHelper) {
-        obj.line.geometry.dispose();
-        (obj.line.material as THREE.Material).dispose();
-        obj.cone.geometry.dispose();
-        (obj.cone.material as THREE.Material).dispose();
-      }
-    });
-  }
-
-  private makeTextSprite(text: string, color: number): THREE.Sprite {
-    const canvas = document.createElement('canvas');
-    canvas.width = 64;
-    canvas.height = 64;
-    const ctx = canvas.getContext('2d')!;
-    ctx.font = 'bold 48px monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#' + new THREE.Color(color).getHexString();
-    ctx.fillText(text, 32, 32);
-    const texture = new THREE.CanvasTexture(canvas);
-    const mat = new THREE.SpriteMaterial({ map: texture, depthTest: false });
-    const sprite = new THREE.Sprite(mat);
-    sprite.scale.set(1, 1, 1); // will be rescaled in addAxes caller
-    return sprite;
-  }
 
   lookAt(target: THREE.Vector3): void {
     this.controls.target.copy(target);
